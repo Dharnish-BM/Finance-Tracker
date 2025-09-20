@@ -8,13 +8,11 @@ const FinancialNewsCarouselLanding = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const carouselRef = useRef(null);
 
-  // Replace with your NewsAPI key
   const NEWS_API_KEY = '8800194631c5480e8c8aa40b765bb85b';
   const NEWS_API_URL = `https://api.allorigins.win/raw?url=${encodeURIComponent(
-  `https://newsapi.org/v2/top-headlines?category=business&language=en&pageSize=20&apiKey=${NEWS_API_KEY}`
-)}`;
+    `https://newsapi.org/v2/top-headlines?category=business&language=en&pageSize=20&apiKey=${NEWS_API_KEY}`
+  )}`;
 
-  // Fetch financial news from NewsAPI
   useEffect(() => {
     const fetchNews = async () => {
       try {
@@ -26,18 +24,15 @@ const FinancialNewsCarouselLanding = () => {
 
         const data = await response.json();
 
-        if (data.status !== 'ok') {
-          throw new Error(data.message || 'Failed to fetch news');
-        }
+        if (data.status !== 'ok') throw new Error(data.message || 'Failed to fetch news');
 
-        // Map API response to match our card structure
         const articles = data.articles.map((article, index) => ({
           id: index,
           title: article.title,
-          description: article.description || '',
-          fullDescription: article.content || article.description || '',
+          description: article.description || 'No description available.',
+          fullDescription: article.content || article.description || 'No additional content available.',
           publishedAt: article.publishedAt,
-          urlToImage: article.urlToImage || 'https://via.placeholder.com/300x200?text=No+Image',
+          urlToImage: article.urlToImage || 'https://via.placeholder.com/380x260?text=No+Image',
           source: article.source.name,
           url: article.url,
         }));
@@ -71,13 +66,13 @@ const FinancialNewsCarouselLanding = () => {
 
   const scrollLeft = () => {
     if (carouselRef.current) {
-      carouselRef.current.scrollBy({ left: -320, behavior: 'smooth' });
+      carouselRef.current.scrollBy({ left: -400, behavior: 'smooth' });
     }
   };
 
   const scrollRight = () => {
     if (carouselRef.current) {
-      carouselRef.current.scrollBy({ left: 320, behavior: 'smooth' });
+      carouselRef.current.scrollBy({ left: 400, behavior: 'smooth' });
     }
   };
 
@@ -119,37 +114,32 @@ const FinancialNewsCarouselLanding = () => {
 
   const NewsCard = ({ article }) => (
     <div
-      className="flex-shrink-0 w-[300px] h-[200px] bg-white rounded-lg shadow-md overflow-hidden cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl group"
+      className="flex-shrink-0 w-[380px] h-[260px] bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl group"
       onClick={() => openModal(article)}
     >
-      <div className="relative h-24 overflow-hidden">
+      <div className="relative h-40 overflow-hidden">
         <img
           src={article.urlToImage}
           alt={article.title}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-          onError={(e) => {
-            e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
-          }}
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
         />
-        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300"></div>
       </div>
-
-      <div className="p-3 h-32 flex flex-col justify-between">
+      <div className="p-4 h-[120px] flex flex-col justify-between">
         <div>
           <h3
-            className="font-semibold text-sm text-gray-900 leading-tight overflow-hidden"
+            className="font-semibold text-sm md:text-base text-gray-900 leading-tight overflow-hidden"
             style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}
           >
             {article.title}
           </h3>
           <p
-            className="text-xs text-gray-600 mt-1 leading-tight overflow-hidden"
+            className="text-xs md:text-sm text-gray-600 mt-1 leading-tight overflow-hidden"
             style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}
           >
             {article.description}
           </p>
         </div>
-        <div className="flex justify-between items-center text-xs text-gray-500 mt-2">
+        <div className="flex justify-between items-center text-xs md:text-sm text-gray-500 mt-2">
           <span>{formatDate(article.publishedAt)}</span>
           <span className="font-medium">{article.source}</span>
         </div>
@@ -165,7 +155,7 @@ const FinancialNewsCarouselLanding = () => {
           className="absolute inset-0 bg-black bg-opacity-50 transition-opacity duration-300"
           onClick={closeModal}
         ></div>
-        <div className="relative bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden transform transition-all duration-300 scale-100">
+        <div className="relative bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-100">
           <button
             onClick={closeModal}
             className="absolute top-4 right-4 z-10 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-2 transition-all duration-200"
@@ -181,18 +171,21 @@ const FinancialNewsCarouselLanding = () => {
                 src={selectedArticle.urlToImage}
                 alt={selectedArticle.title}
                 className="w-full h-full object-cover"
-                onError={(e) => { e.target.src = 'https://via.placeholder.com/800x400?text=No+Image'; }}
+                onError={(e) => {
+                  e.target.src = 'https://via.placeholder.com/800x400?text=No+Image';
+                }}
               />
             </div>
 
             <div className="p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">{selectedArticle.title}</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{selectedArticle.title}</h2>
               <div className="flex items-center text-sm text-gray-600 mb-4">
                 <span className="mr-4">{formatDate(selectedArticle.publishedAt)}</span>
                 <span className="font-medium">{selectedArticle.source}</span>
               </div>
               <div className="prose max-w-none">
-                <p className="text-gray-700 leading-relaxed">{selectedArticle.fullDescription}</p>
+                <p className="text-gray-700 leading-relaxed mb-2"><strong>Description:</strong> {selectedArticle.description}</p>
+                <p className="text-gray-700 leading-relaxed"><strong>Content:</strong> {selectedArticle.fullDescription}</p>
               </div>
               {selectedArticle.url && (
                 <div className="mt-6">
@@ -246,6 +239,7 @@ const FinancialNewsCarouselLanding = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
+
           <button
             onClick={scrollRight}
             className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110"
