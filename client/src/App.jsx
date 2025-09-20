@@ -3,6 +3,11 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import LandingPage from "./pages/LandingPage";
+import Home from "./pages/Home";
+import ExchangeDashboard from "./components/ExchangeDashboard";
+import Transactions from "./pages/Transactions";
+import Analytics from "./pages/Analytics";
+import Layout from "./components/Layout";
 import Navbar from "./components/Navbar";
 
 
@@ -26,6 +31,18 @@ function App() {
           path="/"
           element={user ? <LandingPage /> : <Navigate to="/login" />}
         />
+        <Route path="/dashboard" element={
+          user ? (
+            <Layout>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/exchange" element={<ExchangeDashboard />} />
+                <Route path="/transactions" element={<Transactions />} />
+                <Route path="/analytics" element={<Analytics />} />
+              </Routes>
+            </Layout>
+          ) : <Navigate to="/login" />
+        } />
       </Routes>
     </Router>
   );
