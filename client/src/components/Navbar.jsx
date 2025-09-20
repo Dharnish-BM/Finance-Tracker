@@ -55,6 +55,42 @@ function Navbar({ user, setUser }) {
             </>
           ) : (
             <>
+              <motion.div whileHover={{ scale: 1.05 }}>
+                <Link
+                  to="/dashboard"
+                  className="px-4 py-2 font-medium hover:text-[#e0aaff] transition"
+                >
+                  Dashboard
+                </Link>
+              </motion.div>
+
+              <motion.div whileHover={{ scale: 1.05 }}>
+                <Link
+                  to="/dashboard/exchange"
+                  className="px-4 py-2 font-medium hover:text-[#e0aaff] transition"
+                >
+                  Exchange Rate
+                </Link>
+              </motion.div>
+
+              <motion.div whileHover={{ scale: 1.05 }}>
+                <Link
+                  to="/dashboard/transactions"
+                  className="px-4 py-2 font-medium hover:text-[#e0aaff] transition"
+                >
+                  Transactions
+                </Link>
+              </motion.div>
+
+              <motion.div whileHover={{ scale: 1.05 }}>
+                <Link
+                  to="/dashboard/analytics"
+                  className="px-4 py-2 font-medium hover:text-[#e0aaff] transition"
+                >
+                  Analytics
+                </Link>
+              </motion.div>
+
               <motion.span
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -122,6 +158,34 @@ function Navbar({ user, setUser }) {
               </>
             ) : (
               <>
+                <Link
+                  to="/dashboard"
+                  onClick={() => setMobileOpen(false)}
+                  className="px-6 py-3 hover:bg-[#7209b7] transition text-white font-medium"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  to="/dashboard/exchange"
+                  onClick={() => setMobileOpen(false)}
+                  className="px-6 py-3 hover:bg-[#7209b7] transition text-white font-medium"
+                >
+                  Exchange Rate
+                </Link>
+                <Link
+                  to="/dashboard/transactions"
+                  onClick={() => setMobileOpen(false)}
+                  className="px-6 py-3 hover:bg-[#7209b7] transition text-white font-medium"
+                >
+                  Transactions
+                </Link>
+                <Link
+                  to="/dashboard/analytics"
+                  onClick={() => setMobileOpen(false)}
+                  className="px-6 py-3 hover:bg-[#7209b7] transition text-white font-medium"
+                >
+                  Analytics
+                </Link>
                 <span className="px-6 py-3 text-white font-medium">
                   Welcome 👋
                 </span>
