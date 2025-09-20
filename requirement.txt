@@ -1,2 +1,14 @@
+frontend
 react-router-dom axios
 framer-motion
+
+
+
+
+backend
+
+express 
+axios 
+dotenv 
+body-parser 
+cors

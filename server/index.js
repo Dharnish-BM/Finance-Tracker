@@ -15,7 +15,7 @@ app.use(cors({
 }));
 // Public routes
 app.use("/api/auth", authRoutes);
-
+//app.use("/api/chat",chatRoutes)
 // Protected financial tracker route
 app.get("/api/finance", protect, (req, res) => {
   res.json({ message: `Welcome ${req.user.name}, here are your transactions...` });
