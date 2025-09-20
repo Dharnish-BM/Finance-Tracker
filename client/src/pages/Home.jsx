@@ -19,14 +19,14 @@ const Home = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              to="/exchange"
+              to="/dashboard/exchange"
               className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
             >
               <i className="fas fa-exchange-alt mr-2"></i>
               View Exchange Rates
             </Link>
             <Link
-              to="/transactions"
+              to="/dashboard/transactions"
               className="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:from-purple-700 hover:to-purple-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
             >
               <i className="fas fa-list mr-2"></i>
@@ -46,7 +46,7 @@ const Home = () => {
               Get live INR to USD exchange rates with historical data, charts, and conversion tools.
             </p>
             <Link
-              to="/exchange"
+              to="/dashboard/exchange"
               className="text-blue-600 font-semibold hover:text-blue-700 transition-colors"
             >
               View Exchange Rates →
@@ -62,7 +62,7 @@ const Home = () => {
               Track your income and expenses with detailed categorization and smart insights.
             </p>
             <Link
-              to="/transactions"
+              to="/dashboard/transactions"
               className="text-green-600 font-semibold hover:text-green-700 transition-colors"
             >
               Manage Transactions →
@@ -78,7 +78,7 @@ const Home = () => {
               Visualize your financial data with interactive charts and comprehensive reports.
             </p>
             <Link
-              to="/analytics"
+              to="/dashboard/analytics"
               className="text-purple-600 font-semibold hover:text-purple-700 transition-colors"
             >
               View Analytics →
@@ -116,7 +116,7 @@ const Home = () => {
             Join thousands of users who trust Finance Tracker for their financial management needs.
           </p>
           <Link
-            to="/exchange"
+            to="/dashboard/exchange"
             className="bg-white text-blue-600 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 inline-block"
           >
             Get Started Now

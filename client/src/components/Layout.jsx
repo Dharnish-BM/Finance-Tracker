@@ -25,9 +25,9 @@ const Layout = ({ children }) => {
             
             <div className="flex items-center space-x-8">
               <Link
-                to="/"
+                to="/dashboard"
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                  isActive('/') 
+                  isActive('/dashboard') 
                     ? 'bg-blue-100 text-blue-700' 
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
@@ -37,9 +37,9 @@ const Layout = ({ children }) => {
               </Link>
               
               <Link
-                to="/exchange"
+                to="/dashboard/exchange"
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                  isActive('/exchange') 
+                  isActive('/dashboard/exchange') 
                     ? 'bg-blue-100 text-blue-700' 
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
@@ -49,9 +49,9 @@ const Layout = ({ children }) => {
               </Link>
               
               <Link
-                to="/transactions"
+                to="/dashboard/transactions"
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                  isActive('/transactions') 
+                  isActive('/dashboard/transactions') 
                     ? 'bg-blue-100 text-blue-700' 
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
@@ -61,9 +61,9 @@ const Layout = ({ children }) => {
               </Link>
               
               <Link
-                to="/analytics"
+                to="/dashboard/analytics"
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                  isActive('/analytics') 
+                  isActive('/dashboard/analytics') 
                     ? 'bg-blue-100 text-blue-700' 
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
@@ -96,10 +96,10 @@ const Layout = ({ children }) => {
             <div>
               <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><Link to="/" className="hover:text-white transition-colors">Home</Link></li>
-                <li><Link to="/exchange" className="hover:text-white transition-colors">Exchange Rate</Link></li>
-                <li><Link to="/transactions" className="hover:text-white transition-colors">Transactions</Link></li>
-                <li><Link to="/analytics" className="hover:text-white transition-colors">Analytics</Link></li>
+                <li><Link to="/dashboard" className="hover:text-white transition-colors">Home</Link></li>
+                <li><Link to="/dashboard/exchange" className="hover:text-white transition-colors">Exchange Rate</Link></li>
+                <li><Link to="/dashboard/transactions" className="hover:text-white transition-colors">Transactions</Link></li>
+                <li><Link to="/dashboard/analytics" className="hover:text-white transition-colors">Analytics</Link></li>
               </ul>
             </div>
             

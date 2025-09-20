@@ -5,6 +5,7 @@ echo.
 echo Installing client dependencies...
 cd client
 call npm install
+
 echo.
 
 echo Installing server dependencies...
