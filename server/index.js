@@ -2,6 +2,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/auth");
+const newsRoutes = require("./routes/news");
 const protect = require("./middleware/auth");
 const cors = require("cors");
 dotenv.config();
@@ -15,6 +16,7 @@ app.use(cors({
 }));
 // Public routes
 app.use("/api/auth", authRoutes);
+app.use("/api/news", newsRoutes);
 //app.use("/api/chat",chatRoutes)
 // Protected financial tracker route
 app.get("/api/finance", protect, (req, res) => {

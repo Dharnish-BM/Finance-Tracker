@@ -19,5 +19,8 @@ export default {
       }
     },
   },
-  plugins: [],
+  plugins: [
+    // Line clamp plugin is included in Tailwind CSS v3.3+
+    // No need to import separately
+  ],
 }
