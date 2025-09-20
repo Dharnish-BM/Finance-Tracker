@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import LandingPage from "./pages/LandingPage";
@@ -10,9 +10,18 @@ import Analytics from "./pages/Analytics";
 import Layout from "./components/Layout";
 import Navbar from "./components/Navbar";
 
+function AppWrapper() {
+  // Wrap App with Router to use useLocation
+  return (
+    <Router>
+      <App />
+    </Router>
+  );
+}
 
 function App() {
   const [user, setUser] = useState(null);
+  const location = useLocation(); // Get current route
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -21,9 +30,12 @@ function App() {
     }
   }, []);
 
+  // Don't show navbar on login or register pages
+  const hideNavbar = location.pathname === "/login" || location.pathname === "/register";
+
   return (
-    <Router>
-      <Navbar user={user} setUser={setUser} />
+    <>
+      {!hideNavbar && <Navbar user={user} setUser={setUser} />}
       <Routes>
         <Route path="/login" element={<Login setUser={setUser} />} />
         <Route path="/register" element={<Register />} />
@@ -44,8 +56,8 @@ function App() {
           ) : <Navigate to="/login" />
         } />
       </Routes>
-    </Router>
+    </>
   );
 }
 
-export default App;
+export default AppWrapper;
