@@ -3,14 +3,19 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "r
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import LandingPage from "./pages/LandingPage";
+import TransactionManagement from "./pages/TransactionManagement";
+import BudgetManagement from "./pages/BudgetManagement";
 import Chatbot from "./components/chatbot"; // chatbot component
 import Navbar from "./components/Navbar";
+import { FinanceProvider } from "./context/FinanceContext";
 
 function AppWrapper() {
   return (
-    <Router>
-      <App />
-    </Router>
+    <FinanceProvider>
+      <Router>
+        <App />
+      </Router>
+    </FinanceProvider>
   );
 }
 
@@ -38,6 +43,8 @@ function App() {
         <Route path="/login" element={<Login setUser={setUser} />} />
         <Route path="/register" element={<Register />} />
         <Route path="/" element={user ? <LandingPage /> : <Navigate to="/login" />} />
+        <Route path="/transactions" element={user ? <TransactionManagement /> : <Navigate to="/login" />} />
+        <Route path="/budgets" element={user ? <BudgetManagement /> : <Navigate to="/login" />} />
       </Routes>
 
       {!hideNavbar && <Chatbot />}

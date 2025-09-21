@@ -30,6 +30,30 @@ function Navbar({ user, setUser }) {
           </Link>
         </motion.div>
 
+        {/* Navigation Links */}
+        {user && (
+          <div className="hidden md:flex items-center space-x-6">
+            <Link
+              to="/"
+              className="text-white/90 hover:text-white transition font-medium"
+            >
+              Dashboard
+            </Link>
+            <Link
+              to="/transactions"
+              className="text-white/90 hover:text-white transition font-medium"
+            >
+              Transactions
+            </Link>
+            <Link
+              to="/budgets"
+              className="text-white/90 hover:text-white transition font-medium"
+            >
+              Budgets
+            </Link>
+          </div>
+        )}
+
         {/* Logout Button */}
         {user && (
           <motion.button
@@ -61,7 +85,7 @@ function Navbar({ user, setUser }) {
         )}
       </div>
 
-      {/* Mobile Logout Menu */}
+      {/* Mobile Menu */}
       {mobileOpen && user && (
         <motion.div
           initial={{ height: 0, opacity: 0 }}
@@ -70,6 +94,27 @@ function Navbar({ user, setUser }) {
           transition={{ duration: 0.3 }}
           className="md:hidden flex flex-col mt-4 bg-[#5e0a96] rounded-lg overflow-hidden"
         >
+          <Link
+            to="/"
+            onClick={() => setMobileOpen(false)}
+            className="px-6 py-3 hover:bg-[#7209b7] transition text-white font-medium text-left w-full"
+          >
+            Dashboard
+          </Link>
+          <Link
+            to="/transactions"
+            onClick={() => setMobileOpen(false)}
+            className="px-6 py-3 hover:bg-[#7209b7] transition text-white font-medium text-left w-full"
+          >
+            Transactions
+          </Link>
+          <Link
+            to="/budgets"
+            onClick={() => setMobileOpen(false)}
+            className="px-6 py-3 hover:bg-[#7209b7] transition text-white font-medium text-left w-full"
+          >
+            Budgets
+          </Link>
           <button
             onClick={() => {
               handleLogout();
