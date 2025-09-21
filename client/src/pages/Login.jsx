@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { jwtDecode } from "jwt-decode";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import GitHubLogin from "../components/GitHubLogin";
+import TestGitHub from "../components/TestGitHub";
 
 function Login({ setUser }) {
   const [email, setEmail] = useState("");
@@ -28,6 +30,7 @@ function Login({ setUser }) {
 
     const handleGoogleSuccess = async (credentialResponse) => {
     try {
+      console.log("Google credential response:", credentialResponse);
       const decoded = jwtDecode(credentialResponse.credential);
       console.log("Google User:", decoded);
 
@@ -36,12 +39,40 @@ function Login({ setUser }) {
         token: credentialResponse.credential,
       });
 
+      console.log("Backend response:", res.data);
       localStorage.setItem("token", res.data.token);
       setUser(res.data.token);
       navigate("/");
     } catch (err) {
-      alert("Google login failed");
+      console.error("Google login error:", err);
+      console.error("Error response:", err.response?.data);
+      alert(`Google login failed: ${err.response?.data?.message || err.message}`);
     }
+  };
+
+  const handleGitHubSuccess = async (code) => {
+    try {
+      console.log("GitHub code received:", code);
+
+      // send code to backend to exchange for access token and get user data
+      const res = await axios.post("http://localhost:5000/api/auth/github", {
+        code: code,
+      });
+
+      console.log("GitHub backend response:", res.data);
+      localStorage.setItem("token", res.data.token);
+      setUser(res.data.token);
+      navigate("/");
+    } catch (err) {
+      console.error("GitHub login error:", err);
+      console.error("GitHub error response:", err.response?.data);
+      alert(`GitHub login failed: ${err.response?.data?.message || err.message}`);
+    }
+  };
+
+  const handleGitHubError = (error) => {
+    console.error("GitHub login error:", error);
+    alert(`GitHub login failed: ${error}`);
   };
 
   
@@ -93,11 +124,22 @@ function Login({ setUser }) {
 
         <div className="my-4 text-gray-500 text-sm">or</div>
 
-        <div className="w-full flex justify-center">
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => alert("Google login failed")}
+        <div className="w-full space-y-3">
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => alert("Google login failed")}
+            />
+          </div>
+          
+          <GitHubLogin
+            onSuccess={handleGitHubSuccess}
+            onError={handleGitHubError}
           />
+        </div>
+
+        <div className="mt-4">
+          <TestGitHub />
         </div>
 
         <motion.p

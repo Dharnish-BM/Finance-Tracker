@@ -2,6 +2,7 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const { OAuth2Client } = require("google-auth-library");
+const { Octokit } = require("@octokit/rest");
 const router = express.Router();
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -83,6 +84,79 @@ router.post("/google", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(401).json({ message: "Google login failed" });
+  }
+});
+
+// @route POST /api/auth/github
+router.post("/github", async (req, res) => {
+  try {
+    const { code } = req.body;
+
+    if (!code) {
+      return res.status(400).json({ message: "Authorization code is required" });
+    }
+
+    // Exchange code for access token
+    const tokenResponse = await fetch("https://github.com/login/oauth/access_token", {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        client_id: process.env.GITHUB_CLIENT_ID,
+        client_secret: process.env.GITHUB_CLIENT_SECRET,
+        code: code,
+      }),
+    });
+
+    const tokenData = await tokenResponse.json();
+
+    if (tokenData.error) {
+      return res.status(400).json({ message: "Failed to get access token" });
+    }
+
+    // Get user data from GitHub
+    const octokit = new Octokit({
+      auth: tokenData.access_token,
+    });
+
+    const { data: githubUser } = await octokit.rest.users.getAuthenticated();
+
+    // Check if user exists by GitHub ID or email
+    let user = await User.findOne({ 
+      $or: [
+        { githubId: githubUser.id.toString() },
+        { email: githubUser.email }
+      ]
+    });
+
+    if (!user) {
+      // Create new user
+      user = await User.create({
+        name: githubUser.name || githubUser.login,
+        email: githubUser.email || `${githubUser.login}@github.com`,
+        password: null,
+        authType: "github",
+        githubId: githubUser.id.toString(),
+      });
+    } else if (!user.githubId) {
+      // Link existing user with GitHub
+      user.githubId = githubUser.id.toString();
+      user.authType = "github";
+      await user.save();
+    }
+
+    const jwtToken = jwt.sign(
+      { id: user._id, email: user.email, name: user.name },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.json({ token: jwtToken });
+  } catch (err) {
+    console.error("GitHub login error:", err);
+    res.status(401).json({ message: "GitHub login failed" });
   }
 });
 

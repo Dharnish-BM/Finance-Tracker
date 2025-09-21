@@ -5,7 +5,8 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String }, // optional now
-  authType: { type: String, enum: ["local", "google"], default: "local" },
+  authType: { type: String, enum: ["local", "google", "github"], default: "local" },
+  githubId: { type: String, unique: true, sparse: true },
 });
 
 // hash password before saving

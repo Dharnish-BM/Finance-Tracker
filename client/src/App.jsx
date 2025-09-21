@@ -5,6 +5,8 @@ import Register from "./pages/Register";
 import LandingPage from "./pages/LandingPage";
 import TransactionManagement from "./pages/TransactionManagement";
 import BudgetManagement from "./pages/BudgetManagement";
+import GitHubCallback from "./pages/GitHubCallback";
+import DebugAuth from "./pages/DebugAuth";
 import Chatbot from "./components/chatbot"; // chatbot component
 import Navbar from "./components/Navbar";
 import { FinanceProvider } from "./context/FinanceContext";
@@ -42,6 +44,8 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login setUser={setUser} />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/auth/github/callback" element={<GitHubCallback />} />
+        <Route path="/debug" element={<DebugAuth />} />
         <Route path="/" element={user ? <LandingPage /> : <Navigate to="/login" />} />
         <Route path="/transactions" element={user ? <TransactionManagement /> : <Navigate to="/login" />} />
         <Route path="/budgets" element={user ? <BudgetManagement /> : <Navigate to="/login" />} />

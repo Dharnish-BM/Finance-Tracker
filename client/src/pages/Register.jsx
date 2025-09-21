@@ -2,12 +2,35 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import GitHubLogin from "../components/GitHubLogin";
 
 function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+
+  const handleGitHubSuccess = async (code) => {
+    try {
+      console.log("GitHub code received:", code);
+
+      // send code to backend to exchange for access token and get user data
+      const res = await axios.post("http://localhost:5000/api/auth/github", {
+        code: code,
+      });
+
+      localStorage.setItem("token", res.data.token);
+      navigate("/");
+    } catch (err) {
+      console.error("GitHub login error:", err);
+      alert("GitHub login failed");
+    }
+  };
+
+  const handleGitHubError = (error) => {
+    console.error("GitHub login error:", error);
+    alert(`GitHub login failed: ${error}`);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -77,6 +100,13 @@ function Register() {
         >
           Register
         </motion.button>
+
+        <div className="my-4 text-gray-500 text-sm">or</div>
+
+        <GitHubLogin
+          onSuccess={handleGitHubSuccess}
+          onError={handleGitHubError}
+        />
 
         <motion.p
           initial={{ opacity: 0 }}
