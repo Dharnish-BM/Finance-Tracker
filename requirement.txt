@@ -3,12 +3,17 @@ react-router-dom axios
 framer-motion
 lucide-react
 recharts
+@react-oauth/google jwt-decode
 
 
-backend
+backend(node)
 
 express 
 axios 
 dotenv 
 body-parser 
 cors
+google-auth-library
+
+
+backend(python)
