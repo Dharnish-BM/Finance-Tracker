@@ -4,16 +4,20 @@ framer-motion
 lucide-react
 recharts
 @react-oauth/google jwt-decode
-
+react-chartjs-2
+tailwindcss
+@tailwindcss/vite
 
 backend(node)
-
 express 
 axios 
 dotenv 
 body-parser 
 cors
 google-auth-library
-
+@octokit/rest
+bcrypt
+jsonwebtoken
+mongoose
 
 backend(python)
