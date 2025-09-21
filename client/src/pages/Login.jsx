@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { jwtDecode } from "jwt-decode";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Login({ setUser }) {
   const [email, setEmail] = useState("");
@@ -23,6 +25,26 @@ function Login({ setUser }) {
     }
   };
 
+
+    const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const decoded = jwtDecode(credentialResponse.credential);
+      console.log("Google User:", decoded);
+
+      // send token to backend to verify + generate your own JWT
+      const res = await axios.post("http://localhost:5000/api/auth/google", {
+        token: credentialResponse.credential,
+      });
+
+      localStorage.setItem("token", res.data.token);
+      setUser(res.data.token);
+      navigate("/");
+    } catch (err) {
+      alert("Google login failed");
+    }
+  };
+
+  
   return (
     <div className="flex items-center justify-center h-screen bg-gradient-to-br from-[#e0c3fc] to-[#8ec5fc]">
       <motion.form
@@ -67,6 +89,16 @@ function Login({ setUser }) {
         >
           Login
         </motion.button>
+
+
+        <div className="my-4 text-gray-500 text-sm">or</div>
+
+        <div className="w-full flex justify-center">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => alert("Google login failed")}
+          />
+        </div>
 
         <motion.p
           initial={{ opacity: 0 }}

@@ -9,9 +9,7 @@ const FinancialNewsCarouselLanding = () => {
   const carouselRef = useRef(null);
 
   const NEWS_API_KEY = '8800194631c5480e8c8aa40b765bb85b';
-  const NEWS_API_URL = `https://api.allorigins.win/raw?url=${encodeURIComponent(
-    `https://newsapi.org/v2/top-headlines?category=business&language=en&pageSize=20&apiKey=${NEWS_API_KEY}`
-  )}`;
+  const NEWS_API_URL = `https://newsapi.org/v2/top-headlines?category=business&language=en&pageSize=20&apiKey=${NEWS_API_KEY}`;
 
   // Fetch news
   useEffect(() => {

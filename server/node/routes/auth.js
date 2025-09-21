@@ -1,8 +1,10 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-
+const { OAuth2Client } = require("google-auth-library");
 const router = express.Router();
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
@@ -46,6 +48,41 @@ router.post("/login", async (req, res) => {
     }
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+});
+
+router.post("/google", async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { email, name } = payload;
+
+    let user = await User.findOne({ email });
+    if (!user) {
+      user = await User.create({
+        name,
+        email,
+        password: null,
+        authType: "google",
+      });
+    }
+
+    const jwtToken = jwt.sign(
+      { id: user._id, email: user.email, name: user.name },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.json({ token: jwtToken });
+  } catch (err) {
+    console.error(err);
+    res.status(401).json({ message: "Google login failed" });
   }
 });
 
