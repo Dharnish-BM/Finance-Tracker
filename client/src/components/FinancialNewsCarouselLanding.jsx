@@ -13,6 +13,7 @@ const FinancialNewsCarouselLanding = () => {
     `https://newsapi.org/v2/top-headlines?category=business&language=en&pageSize=20&apiKey=${NEWS_API_KEY}`
   )}`;
 
+  // Fetch news
   useEffect(() => {
     const fetchNews = async () => {
       try {
@@ -49,6 +50,24 @@ const FinancialNewsCarouselLanding = () => {
     fetchNews();
   }, []);
 
+  // Auto scroll carousel slowly
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (carouselRef.current) {
+        carouselRef.current.scrollBy({ left: 1, behavior: 'smooth' });
+        // Loop to start
+        if (
+          carouselRef.current.scrollLeft + carouselRef.current.clientWidth >=
+          carouselRef.current.scrollWidth
+        ) {
+          carouselRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+        }
+      }
+    }, 20); // small scroll every 20ms for slow movement
+
+    return () => clearInterval(interval);
+  }, [news]);
+
   const formatDate = (dateString) => {
     try {
       const date = new Date(dateString);
@@ -64,18 +83,6 @@ const FinancialNewsCarouselLanding = () => {
     }
   };
 
-  const scrollLeft = () => {
-    if (carouselRef.current) {
-      carouselRef.current.scrollBy({ left: -400, behavior: 'smooth' });
-    }
-  };
-
-  const scrollRight = () => {
-    if (carouselRef.current) {
-      carouselRef.current.scrollBy({ left: 400, behavior: 'smooth' });
-    }
-  };
-
   const openModal = (article) => {
     setSelectedArticle(article);
     setIsModalOpen(true);
@@ -87,30 +94,6 @@ const FinancialNewsCarouselLanding = () => {
     setSelectedArticle(null);
     document.body.style.overflow = 'unset';
   };
-
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape' && isModalOpen) closeModal();
-    };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isModalOpen]);
-
-  const LoadingSpinner = () => (
-    <div className="flex justify-center items-center h-64">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-    </div>
-  );
-
-  const ErrorMessage = ({ errorMessage }) => (
-    <div className="flex justify-center items-center h-64">
-      <div className="text-center">
-        <div className="text-red-500 text-xl mb-2">⚠️</div>
-        <p className="text-red-600 font-medium">Failed to load financial news</p>
-        <p className="text-gray-600 text-sm mt-1">{errorMessage || 'Unknown error occurred'}</p>
-      </div>
-    </div>
-  );
 
   const NewsCard = ({ article }) => (
     <div
@@ -209,11 +192,27 @@ const FinancialNewsCarouselLanding = () => {
     );
   };
 
+  const LoadingSpinner = () => (
+    <div className="flex justify-center items-center h-64">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+  );
+
+  const ErrorMessage = ({ errorMessage }) => (
+    <div className="flex justify-center items-center h-64">
+      <div className="text-center">
+        <div className="text-red-500 text-xl mb-2">⚠️</div>
+        <p className="text-red-600 font-medium">Failed to load financial news</p>
+        <p className="text-gray-600 text-sm mt-1">{errorMessage || 'Unknown error occurred'}</p>
+      </div>
+    </div>
+  );
+
   return (
     <div className="w-full">
-      <div className="mb-6">
+      <div className="mb-6 text-center">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Latest Financial News</h2>
-        <p className="text-gray-600">Stay updated with the latest financial market news and insights</p>
+        <p className="text-gray-800 font-semibold">Stay updated with the latest financial market news and insights</p>
       </div>
 
       {loading ? (
@@ -230,26 +229,6 @@ const FinancialNewsCarouselLanding = () => {
         </div>
       ) : (
         <div className="relative">
-          <button
-            onClick={scrollLeft}
-            className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110"
-            aria-label="Scroll left"
-          >
-            <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-
-          <button
-            onClick={scrollRight}
-            className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110"
-            aria-label="Scroll right"
-          >
-            <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-
           <div
             ref={carouselRef}
             className="flex space-x-5 overflow-x-auto scrollbar-hide scroll-smooth"
