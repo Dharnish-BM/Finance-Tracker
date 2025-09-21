@@ -5,7 +5,6 @@ import { jwtDecode } from "jwt-decode";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import GitHubLogin from "../components/GitHubLogin";
-import TestGitHub from "../components/TestGitHub";
 
 function Login({ setUser }) {
   const [email, setEmail] = useState("");
@@ -136,10 +135,6 @@ function Login({ setUser }) {
             onSuccess={handleGitHubSuccess}
             onError={handleGitHubError}
           />
-        </div>
-
-        <div className="mt-4">
-          <TestGitHub />
         </div>
 
         <motion.p
