@@ -44,23 +44,28 @@ const TransactionManagement = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (editingTransaction) {
-      // Update existing transaction
-      console.log('Updating transaction:', formData);
-      updateTransaction(editingTransaction.id, formData);
-    } else {
-      // Add new transaction
-      console.log('Adding new transaction:', formData);
-      addTransaction(formData);
-    }
+    try {
+      if (editingTransaction) {
+        // Update existing transaction
+        console.log('Updating transaction:', formData);
+        await updateTransaction(editingTransaction._id, formData);
+      } else {
+        // Add new transaction
+        console.log('Adding new transaction:', formData);
+        await addTransaction(formData);
+      }
 
-    // Show success message and reset form
-    setShowSuccessMessage(true);
-    setTimeout(() => setShowSuccessMessage(false), 3000);
-    resetForm();
+      // Show success message and reset form
+      setShowSuccessMessage(true);
+      setTimeout(() => setShowSuccessMessage(false), 3000);
+      resetForm();
+    } catch (error) {
+      console.error('Error saving transaction:', error);
+      alert('Error saving transaction. Please try again.');
+    }
   };
 
   const resetForm = () => {
@@ -87,8 +92,13 @@ const TransactionManagement = () => {
     setShowForm(true);
   };
 
-  const handleDelete = (id) => {
-    deleteTransaction(id);
+  const handleDelete = async (id) => {
+    try {
+      await deleteTransaction(id);
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+      alert('Error deleting transaction. Please try again.');
+    }
   };
 
   const filteredTransactions = transactions.filter(transaction => {
@@ -138,7 +148,7 @@ const TransactionManagement = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Total Income</p>
-                <p className="text-2xl font-bold text-green-600">${totalIncome.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-green-600">₹{totalIncome.toFixed(2)}</p>
               </div>
               <TrendingUp className="h-8 w-8 text-green-500" />
             </div>
@@ -148,7 +158,7 @@ const TransactionManagement = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Total Expenses</p>
-                <p className="text-2xl font-bold text-red-600">${totalExpenses.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-red-600">₹{totalExpenses.toFixed(2)}</p>
               </div>
               <TrendingDown className="h-8 w-8 text-red-500" />
             </div>
@@ -159,7 +169,7 @@ const TransactionManagement = () => {
               <div>
                 <p className="text-gray-600 text-sm font-medium">Net Balance</p>
                 <p className={`text-2xl font-bold ${netBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  ${netBalance.toFixed(2)}
+                  ₹{netBalance.toFixed(2)}
                 </p>
               </div>
               <DollarSign className="h-8 w-8 text-blue-500" />
@@ -383,7 +393,7 @@ const TransactionManagement = () => {
             ) : (
               filteredTransactions.map((transaction) => (
                 <motion.div
-                  key={transaction.id}
+                  key={transaction._id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   className="p-6 hover:bg-gray-50 transition-colors"
@@ -413,7 +423,7 @@ const TransactionManagement = () => {
                         <p className={`font-semibold ${
                           transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                         }`}>
-                          {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}
+                          {transaction.type === 'income' ? '+' : '-'}₹{transaction.amount.toFixed(2)}
                         </p>
                       </div>
 
@@ -429,7 +439,7 @@ const TransactionManagement = () => {
                         <motion.button
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
-                          onClick={() => handleDelete(transaction.id)}
+                          onClick={() => handleDelete(transaction._id)}
                           className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         >
                           <Trash2 className="h-4 w-4" />

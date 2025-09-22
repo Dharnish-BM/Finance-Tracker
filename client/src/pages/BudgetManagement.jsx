@@ -14,6 +14,13 @@ const BudgetManagement = () => {
     totalRemaining
   } = useFinance();
   
+  // Debug: Check authentication status
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    console.log('BudgetManagement - Auth token:', token ? 'Present' : 'Missing');
+    console.log('BudgetManagement - Token value:', token ? token.substring(0, 20) + '...' : 'N/A');
+  }, []);
+  
   const [showForm, setShowForm] = useState(false);
   const [editingBudget, setEditingBudget] = useState(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
@@ -39,23 +46,44 @@ const BudgetManagement = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (editingBudget) {
-      // Update existing budget
-      console.log('Updating budget:', formData);
-      updateBudget(editingBudget.id, formData);
-    } else {
-      // Add new budget
-      console.log('Adding new budget:', formData);
-      addBudget(formData);
+    // Validate form data
+    if (!formData.category || !formData.monthlyLimit) {
+      alert('Please fill in all required fields');
+      return;
     }
+    
+    if (parseFloat(formData.monthlyLimit) <= 0) {
+      alert('Monthly limit must be greater than 0');
+      return;
+    }
+    
+    try {
+      console.log('Form submitted with data:', formData);
+      console.log('Editing budget:', editingBudget);
+      
+      if (editingBudget) {
+        // Update existing budget
+        console.log('Updating budget:', formData);
+        await updateBudget(editingBudget._id, formData);
+      } else {
+        // Add new budget
+        console.log('Adding new budget:', formData);
+        await addBudget(formData);
+      }
 
-    // Show success message and reset form
-    setShowSuccessMessage(true);
-    setTimeout(() => setShowSuccessMessage(false), 3000);
-    resetForm();
+      // Show success message and reset form
+      setShowSuccessMessage(true);
+      setTimeout(() => setShowSuccessMessage(false), 3000);
+      resetForm();
+    } catch (error) {
+      console.error('Error saving budget:', error);
+      console.error('Error details:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      alert(`Error saving budget: ${error.message || 'Please try again.'}`);
+    }
   };
 
   const resetForm = () => {
@@ -78,8 +106,13 @@ const BudgetManagement = () => {
     setShowForm(true);
   };
 
-  const handleDelete = (id) => {
-    deleteBudget(id);
+  const handleDelete = async (id) => {
+    try {
+      await deleteBudget(id);
+    } catch (error) {
+      console.error('Error deleting budget:', error);
+      alert('Error deleting budget. Please try again.');
+    }
   };
 
 
@@ -97,6 +130,20 @@ const BudgetManagement = () => {
     }
   };
 
+
+  // Check if user is authenticated
+  const isAuthenticated = localStorage.getItem('token');
+  
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#e0c3fc] to-[#8ec5fc] pt-24 pb-12 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Authentication Required</h1>
+          <p className="text-gray-600">Please log in to access budget management.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#e0c3fc] to-[#8ec5fc] pt-24 pb-12">
@@ -135,7 +182,7 @@ const BudgetManagement = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Total Budget</p>
-                <p className="text-2xl font-bold text-blue-600">${totalBudget.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-blue-600">₹{totalBudget.toFixed(2)}</p>
               </div>
               <Target className="h-8 w-8 text-blue-500" />
             </div>
@@ -145,7 +192,7 @@ const BudgetManagement = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Total Spent</p>
-                <p className="text-2xl font-bold text-red-600">${totalSpent.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-red-600">₹{totalSpent.toFixed(2)}</p>
               </div>
               <TrendingDown className="h-8 w-8 text-red-500" />
             </div>
@@ -156,7 +203,7 @@ const BudgetManagement = () => {
               <div>
                 <p className="text-gray-600 text-sm font-medium">Remaining</p>
                 <p className={`text-2xl font-bold ${totalRemaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  ${totalRemaining.toFixed(2)}
+                  ₹{totalRemaining.toFixed(2)}
                 </p>
               </div>
               <DollarSign className="h-8 w-8 text-green-500" />
@@ -300,7 +347,7 @@ const BudgetManagement = () => {
 
               return (
                 <motion.div
-                  key={budget.id}
+                  key={budget._id}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200"
@@ -328,7 +375,7 @@ const BudgetManagement = () => {
                       <motion.button
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
-                        onClick={() => handleDelete(budget.id)}
+                        onClick={() => handleDelete(budget._id)}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -339,8 +386,8 @@ const BudgetManagement = () => {
                   {/* Progress Bar */}
                   <div className="mb-4">
                     <div className="flex justify-between text-sm text-gray-600 mb-2">
-                      <span>${budget.currentSpent.toFixed(2)} spent</span>
-                      <span>${budget.monthlyLimit.toFixed(2)} limit</span>
+                      <span>₹{budget.currentSpent.toFixed(2)} spent</span>
+                      <span>₹{budget.monthlyLimit.toFixed(2)} limit</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-3">
                       <motion.div
@@ -360,7 +407,7 @@ const BudgetManagement = () => {
                     </div>
                     <div className="flex justify-between text-xs text-gray-500 mt-1">
                       <span>{percentage.toFixed(1)}% used</span>
-                      <span>${(budget.monthlyLimit - budget.currentSpent).toFixed(2)} remaining</span>
+                      <span>₹{(budget.monthlyLimit - budget.currentSpent).toFixed(2)} remaining</span>
                     </div>
                   </div>
 

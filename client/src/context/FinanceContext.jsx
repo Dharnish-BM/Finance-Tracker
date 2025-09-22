@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
 const FinanceContext = createContext();
 
@@ -13,158 +14,181 @@ export const useFinance = () => {
 export const FinanceProvider = ({ children }) => {
   const [transactions, setTransactions] = useState([]);
   const [budgets, setBudgets] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // Sample data for demonstration
+  // Get auth token from localStorage
+  const getAuthToken = () => {
+    return localStorage.getItem('token');
+  };
+
+  // Set up axios defaults
   useEffect(() => {
-    const sampleTransactions = [
-      {
-        id: 1,
-        type: "income",
-        amount: 5000,
-        category: "Salary",
-        description: "Monthly salary",
-        date: "2024-01-15",
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 2,
-        type: "expense",
-        amount: 150,
-        category: "Food",
-        description: "Grocery shopping",
-        date: "2024-01-14",
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 3,
-        type: "expense",
-        amount: 50,
-        category: "Transport",
-        description: "Uber ride",
-        date: "2024-01-13",
-        createdAt: new Date().toISOString()
-      }
-    ];
-
-    const sampleBudgets = [
-      {
-        id: 1,
-        category: "Food",
-        monthlyLimit: 500,
-        currentSpent: 0,
-        period: "monthly",
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 2,
-        category: "Transport",
-        monthlyLimit: 200,
-        currentSpent: 0,
-        period: "monthly",
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 3,
-        category: "Entertainment",
-        monthlyLimit: 300,
-        currentSpent: 0,
-        period: "monthly",
-        createdAt: new Date().toISOString()
-      }
-    ];
-
-    setTransactions(sampleTransactions);
-    setBudgets(sampleBudgets);
+    const token = getAuthToken();
+    console.log('Auth token:', token);
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      console.log('Authorization header set');
+    } else {
+      console.log('No auth token found');
+    }
   }, []);
 
-  // Calculate current spending for each budget category
-  const calculateCurrentSpending = (category) => {
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
-    
-    return transactions
-      .filter(transaction => 
-        transaction.category === category && 
-        transaction.type === "expense" &&
-        new Date(transaction.date).getMonth() === currentMonth &&
-        new Date(transaction.date).getFullYear() === currentYear
-      )
-      .reduce((sum, transaction) => sum + transaction.amount, 0);
-  };
-
-  // Update budget spending whenever transactions change
+  // Load user data on component mount
   useEffect(() => {
-    setBudgets(prevBudgets => 
-      prevBudgets.map(budget => ({
-        ...budget,
-        currentSpent: calculateCurrentSpending(budget.category)
-      }))
-    );
-  }, [transactions]);
+    const token = getAuthToken();
+    if (token) {
+      loadUserData();
+    }
+  }, []);
+
+  const loadUserData = async () => {
+    setLoading(true);
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        console.log('No token found, skipping data load');
+        return;
+      }
+      
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+      
+      const [transactionsRes, budgetsRes] = await Promise.all([
+        axios.get('http://localhost:5000/api/transactions', { headers }),
+        axios.get('http://localhost:5000/api/budgets', { headers })
+      ]);
+      
+      setTransactions(transactionsRes.data);
+      setBudgets(budgetsRes.data);
+    } catch (error) {
+      console.error('Error loading user data:', error);
+      // If user is not authenticated, don't show error
+      if (error.response?.status !== 401) {
+        console.error('Failed to load user data');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Transaction functions
-  const addTransaction = (transactionData) => {
-    const newTransaction = {
-      ...transactionData,
-      id: Date.now(),
-      amount: parseFloat(transactionData.amount),
-      createdAt: new Date().toISOString()
-    };
-    setTransactions(prev => [newTransaction, ...prev]);
-    return newTransaction;
+  const addTransaction = async (transactionData) => {
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error('User not authenticated');
+      }
+      
+      const response = await axios.post('http://localhost:5000/api/transactions', {
+        ...transactionData,
+        amount: parseFloat(transactionData.amount),
+        date: new Date(transactionData.date)
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      setTransactions(prev => [response.data, ...prev]);
+      return response.data;
+    } catch (error) {
+      console.error('Error adding transaction:', error);
+      throw error;
+    }
   };
 
-  const updateTransaction = (id, transactionData) => {
-    setTransactions(prev => 
-      prev.map(transaction => 
-        transaction.id === id 
-          ? { 
-              ...transactionData, 
-              id, 
-              amount: parseFloat(transactionData.amount),
-              createdAt: transaction.createdAt 
-            }
-          : transaction
-      )
-    );
+  const updateTransaction = async (id, transactionData) => {
+    try {
+      const response = await axios.put(`http://localhost:5000/api/transactions/${id}`, {
+        ...transactionData,
+        amount: parseFloat(transactionData.amount),
+        date: new Date(transactionData.date)
+      });
+      
+      setTransactions(prev => 
+        prev.map(transaction => 
+          transaction._id === id ? response.data : transaction
+        )
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error updating transaction:', error);
+      throw error;
+    }
   };
 
-  const deleteTransaction = (id) => {
-    setTransactions(prev => prev.filter(transaction => transaction.id !== id));
+  const deleteTransaction = async (id) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/transactions/${id}`);
+      setTransactions(prev => prev.filter(transaction => transaction._id !== id));
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+      throw error;
+    }
   };
 
   // Budget functions
-  const addBudget = (budgetData) => {
-    const newBudget = {
-      ...budgetData,
-      id: Date.now(),
-      monthlyLimit: parseFloat(budgetData.monthlyLimit),
-      currentSpent: calculateCurrentSpending(budgetData.category),
-      createdAt: new Date().toISOString()
-    };
-    setBudgets(prev => [newBudget, ...prev]);
-    return newBudget;
+  const addBudget = async (budgetData) => {
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error('User not authenticated');
+      }
+      
+      console.log('Sending budget data:', budgetData);
+      console.log('Using token:', token);
+      
+      const response = await axios.post('http://localhost:5000/api/budgets', {
+        ...budgetData,
+        monthlyLimit: parseFloat(budgetData.monthlyLimit)
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('Budget created successfully:', response.data);
+      setBudgets(prev => [response.data, ...prev]);
+      return response.data;
+    } catch (error) {
+      console.error('Error adding budget:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      throw error;
+    }
   };
 
-  const updateBudget = (id, budgetData) => {
-    const existingBudget = budgets.find(budget => budget.id === id);
-    setBudgets(prev => 
-      prev.map(budget => 
-        budget.id === id 
-          ? { 
-              ...budgetData, 
-              id, 
-              monthlyLimit: parseFloat(budgetData.monthlyLimit), 
-              currentSpent: existingBudget ? existingBudget.currentSpent : 0,
-              createdAt: existingBudget ? existingBudget.createdAt : new Date().toISOString()
-            }
-          : budget
-      )
-    );
+  const updateBudget = async (id, budgetData) => {
+    try {
+      const response = await axios.put(`http://localhost:5000/api/budgets/${id}`, {
+        ...budgetData,
+        monthlyLimit: parseFloat(budgetData.monthlyLimit)
+      });
+      
+      setBudgets(prev => 
+        prev.map(budget => 
+          budget._id === id ? response.data : budget
+        )
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error updating budget:', error);
+      throw error;
+    }
   };
 
-  const deleteBudget = (id) => {
-    setBudgets(prev => prev.filter(budget => budget.id !== id));
+  const deleteBudget = async (id) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/budgets/${id}`);
+      setBudgets(prev => prev.filter(budget => budget._id !== id));
+    } catch (error) {
+      console.error('Error deleting budget:', error);
+      throw error;
+    }
   };
 
   // Get transactions by category for budget calculations
@@ -199,6 +223,7 @@ export const FinanceProvider = ({ children }) => {
     // State
     transactions,
     budgets,
+    loading,
     
     // Transaction functions
     addTransaction,
@@ -212,7 +237,7 @@ export const FinanceProvider = ({ children }) => {
     
     // Utility functions
     getTransactionsByCategory,
-    calculateCurrentSpending,
+    loadUserData,
     
     // Calculated values
     totalIncome,

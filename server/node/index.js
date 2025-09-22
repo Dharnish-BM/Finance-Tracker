@@ -3,6 +3,8 @@ const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/auth");
 const newsRoutes = require("./routes/news");
+const transactionRoutes = require("./routes/transactions");
+const budgetRoutes = require("./routes/budgets");
 const protect = require("./middleware/auth");
 const cors = require("cors");
 dotenv.config();
@@ -18,6 +20,10 @@ app.use(cors({
 app.use("/api/auth", authRoutes);
 app.use("/api/news", newsRoutes);
 //app.use("/api/chat",chatRoutes)
+
+// Protected routes
+app.use("/api/transactions", transactionRoutes);
+app.use("/api/budgets", budgetRoutes);
 // Protected financial tracker route
 app.get("/api/finance", protect, (req, res) => {
   res.json({ message: `Welcome ${req.user.name}, here are your transactions...` });

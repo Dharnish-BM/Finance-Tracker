@@ -7,9 +7,10 @@ import TransactionManagement from "./pages/TransactionManagement";
 import BudgetManagement from "./pages/BudgetManagement";
 import GitHubCallback from "./pages/GitHubCallback";
 import DebugAuth from "./pages/DebugAuth";
+import TestAuth from "./pages/TestAuth";
 import Chatbot from "./components/chatbot"; // chatbot component
 import Navbar from "./components/Navbar";
-import { FinanceProvider } from "./context/FinanceContext";
+import { FinanceProvider, useFinance } from "./context/FinanceContext";
 
 function AppWrapper() {
   return (
@@ -25,12 +26,24 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
+  const { loadUserData } = useFinance();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) setUser(token);
+    if (token) {
+      setUser(token);
+      // Load user data when user is authenticated
+      loadUserData();
+    }
     setLoading(false);
-  }, []);
+  }, [loadUserData]);
+
+  // Reload data when user changes
+  useEffect(() => {
+    if (user) {
+      loadUserData();
+    }
+  }, [user, loadUserData]);
 
   // Hide navbar & chatbot on login/register pages
   const hideNavbar = location.pathname === "/login" || location.pathname === "/register";
@@ -46,6 +59,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/auth/github/callback" element={<GitHubCallback />} />
         <Route path="/debug" element={<DebugAuth />} />
+        <Route path="/test" element={<TestAuth />} />
         <Route path="/" element={user ? <LandingPage /> : <Navigate to="/login" />} />
         <Route path="/transactions" element={user ? <TransactionManagement /> : <Navigate to="/login" />} />
         <Route path="/budgets" element={user ? <BudgetManagement /> : <Navigate to="/login" />} />
