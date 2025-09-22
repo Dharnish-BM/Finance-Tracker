@@ -8,6 +8,7 @@ react-chartjs-2
 tailwindcss
 @tailwindcss/vite
 gapi-script
+react-toastify
 
 backend(node) npm install
 express
@@ -20,6 +21,6 @@ google-auth-library
 bcrypt
 jsonwebtoken
 mongoose
-
+react-toastify
 backend(python) pip install
 google-generativeai
