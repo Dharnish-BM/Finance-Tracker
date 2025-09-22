@@ -1,28 +1,17 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import google.generativeai as genai
 import uvicorn
+import subprocess
+import os
+import re
 
 # ================================
-# Config
+# Configure Gemini API
 # ================================
 genai.configure(api_key="AIzaSyBk0Q8pFNbAgl3KkZybrhqtD8M2ZmuF8e8")
 model = genai.GenerativeModel("gemini-2.5-pro")
-
-# ================================
-# Financial Agent Prompt (Short, Context-Aware)
-# ================================
-FINANCIAL_AGENT_PROMPT = """
-You are a highly skilled financial assistant for a Finance Tracker application.
-Your role:
-- Help users understand their income, expenses, savings, and investments.
-- Provide short, concise, actionable advice.
-- Maintain context of previous messages in the conversation.
-- Always respond politely and clearly.
-- If the query is not finance-related, gently redirect the user back to finance topics.
-Respond in plain text, no greetings, no Markdown symbols, and keep answers brief.
-"""
 
 # ================================
 # FastAPI App
@@ -31,55 +20,68 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # change to your frontend URL in production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ================================
-# In-memory session storage for conversation history
-# ================================
-# key: session_id (or user_id), value: list of dicts: {"role": "user"/"assistant", "content": "..."}
+# In-memory session storage for /chat
 conversation_history = {}
+
+# ================================
+# Helper function to clean Gemini reply
+# ================================
+def clean_reply(text: str) -> str:
+    """Remove markdown symbols from Gemini reply."""
+    if not text:
+        return ""
+    text = re.sub(r'[*_`~>#-]', '', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
 
 # ================================
 # Routes
 # ================================
 @app.get("/")
 def root():
-    return {"status": "ok", "message": "Chatbot backend running with Gemini (Financial Agent, context-aware)!"}
+    return {"status": "ok", "message": "Chatbot backend running with Gemini (Financial Agent & Statement QA)!"}
 
 @app.post("/chat")
 async def chat(request: Request):
     try:
         body = await request.json()
-        session_id = body.get("session_id", "default")  # allow multiple sessions
+        session_id = body.get("session_id", "default")
         user_message = body.get("message", "").strip()
 
         if not user_message:
             return JSONResponse({"error": "Message field is required"}, status_code=400)
 
-        # Initialize conversation history if not exists
         if session_id not in conversation_history:
             conversation_history[session_id] = []
 
-        # Append user message to history
         conversation_history[session_id].append({"role": "user", "content": user_message})
 
-        # Build prompt with context
         context_messages = ""
-        for msg in conversation_history[session_id][-6:]:  # limit last 6 messages for brevity
+        for msg in conversation_history[session_id][-6:]:
             prefix = "User:" if msg["role"] == "user" else "Assistant:"
             context_messages += f"{prefix} {msg['content']}\n"
 
-        full_prompt = f"{FINANCIAL_AGENT_PROMPT}\n\n{context_messages}Assistant:"
+        full_prompt = f"""
+You are a highly skilled financial assistant for a Finance Tracker application.
+- Help users understand their income, expenses, savings, and investments.
+- Provide short, concise, actionable advice.
+- Maintain context of previous messages in the conversation.
+- Always respond politely and clearly.
+- If the query is not finance-related, gently redirect the user back to finance topics.
+Respond in plain text, no greetings, no Markdown symbols, and keep answers brief.
 
-        # Generate response
+{context_messages}Assistant:
+"""
+
         response = model.generate_content(full_prompt)
-        reply = (response.text or "").strip()
+        reply = clean_reply(response.text)
 
-        # Append assistant response to history
         conversation_history[session_id].append({"role": "assistant", "content": reply})
 
         return {"user": user_message, "reply": reply}
@@ -88,5 +90,91 @@ async def chat(request: Request):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
+@app.post("/upload-statement")
+async def upload_statement(file: UploadFile = File(...)):
+    """
+    Upload a bank statement PDF and process it with statementocr.py.
+    """
+    try:
+        file_bytes = await file.read()
+
+        result = subprocess.run(
+            ["python", "statementocr.py"],
+            input=file_bytes,
+            capture_output=True,
+            text=False
+        )
+
+        if result.returncode != 0:
+            return JSONResponse(
+                {"error": "Failed to process file", "details": result.stderr.decode("utf-8", errors="ignore")},
+                status_code=500
+            )
+
+        return {
+            "filename": file.filename,
+            "output": result.stdout.decode("utf-8", errors="ignore").strip()
+        }
+
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+# ================================
+# New route: chat-statement
+# ================================
+@app.post("/chat-statement")
+async def chat_statement(request: Request):
+    """
+    Read extracted_text.txt and answer a user question using Gemini.
+    JSON payload: {"question": "Your question here"}
+    """
+    try:
+        data = await request.json()
+        question = data.get("question", "").strip()
+        if not question:
+            return JSONResponse({"error": "Question field is required"}, status_code=400)
+
+        txt_path = "extracted_text.txt"
+        if not os.path.exists(txt_path):
+            return JSONResponse({"error": f"{txt_path} not found. Upload a statement first."}, status_code=400)
+
+        # Read statement text
+        with open(txt_path, "r", encoding="utf-8") as f:
+            statement_text = f.read().strip()
+
+        if not statement_text:
+            return JSONResponse({"error": f"{txt_path} is empty"}, status_code=400)
+
+        # Start Gemini chat session
+        chat_session = model.start_chat(history=[])
+
+        # Send system context
+        system_prompt = f"""
+You are analyzing a bank statement. Here is the statement text:
+
+{statement_text}
+
+- Answer user questions about transactions, amounts, balances, dates, 
+  merchants, and categories.
+- If the information is not explicitly in the statement, say you cannot find it.
+- Be concise and accurate.
+"""
+        chat_session.send_message(system_prompt)
+
+        # Get answer
+        response = chat_session.send_message(question)
+        answer = clean_reply(response.text)
+
+        return {"question": question, "answer": answer}
+
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+
+# ================================
+# Run server
+# ================================
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
