@@ -7,6 +7,7 @@ const transactionRoutes = require("./routes/transactions");
 const budgetRoutes = require("./routes/budgets");
 const protect = require("./middleware/auth");
 const cors = require("cors");
+const dashboardRoutes = require("./routes/dashboard");
 dotenv.config();
 connectDB();
 
@@ -19,7 +20,7 @@ app.use(cors({
 // Public routes
 app.use("/api/auth", authRoutes);
 app.use("/api/news", newsRoutes);
-//app.use("/api/chat",chatRoutes)
+app.use("/api/dashboard", dashboardRoutes); 
 
 // Protected routes
 app.use("/api/transactions", transactionRoutes);
