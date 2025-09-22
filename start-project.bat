@@ -1,32 +1,21 @@
 @echo off
-echo Starting Finance Tracker Project...
-echo.
+echo ===============================
+echo 🚀 Starting Full Project Setup
+echo ===============================
 
-echo Installing client dependencies...
-cd client
-call npm install
+:: Start Frontend
+echo Starting Frontend (Vite React)...
+start cmd /k "cd client && npm run dev"
 
-echo.
+:: Start Backend (Node.js)
+echo Starting Backend (Node)...
+start cmd /k "cd node && node index.js"
 
-echo Installing server dependencies...
-cd ../server
-call npm install
-echo.
+:: Start Python Service
+echo Starting Python Script...
+start cmd /k "cd python && python main.py"
 
-echo Starting server...
-start "Finance Tracker Server" cmd /k "npm run dev"
-echo.
-
-echo Waiting 3 seconds before starting client...
-timeout /t 3 /nobreak >nul
-
-echo Starting client...
-cd ../client
-start "Finance Tracker Client" cmd /k "npm run dev"
-echo.
-
-echo Both server and client are starting...
-echo Server will be available at: http://localhost:5000
-echo Client will be available at: http://localhost:5173
-echo.
+echo ===============================
+echo ✅ All services launched!
+echo ===============================
 pause
