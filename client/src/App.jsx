@@ -39,13 +39,6 @@ function App() {
     setLoading(false);
   }, [loadUserData]);
 
-  // Reload data when user changes
-  useEffect(() => {
-    if (user) {
-      loadUserData();
-    }
-  }, [user, loadUserData]);
-
   // Hide navbar & chatbot on login/register pages
   const hideNavbar = location.pathname === "/login" || location.pathname === "/register";
 

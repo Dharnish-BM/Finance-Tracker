@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 const FinanceContext = createContext();
@@ -33,18 +33,10 @@ export const FinanceProvider = ({ children }) => {
     }
   }, []);
 
-  // Load user data on component mount
-  useEffect(() => {
-    const token = getAuthToken();
-    if (token) {
-      loadUserData();
-    }
-  }, []);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     setLoading(true);
     try {
-      const token = getAuthToken();
+      const token = localStorage.getItem('token');
       if (!token) {
         console.log('No token found, skipping data load');
         return;
@@ -71,7 +63,7 @@ export const FinanceProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Transaction functions
   const addTransaction = async (transactionData) => {
