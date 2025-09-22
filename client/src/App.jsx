@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import LandingPage from "./pages/LandingPage";
-import TransactionManagement from "./pages/TransactionManagement";
-import BudgetManagement from "./pages/BudgetManagement";
-import GitHubCallback from "./pages/GitHubCallback";
-import DebugAuth from "./pages/DebugAuth";
-import TestAuth from "./pages/TestAuth";
+import { useEffect, useState } from "react";
+import { Navigate, Route, BrowserRouter as Router, Routes, useLocation } from "react-router-dom";
 import Chatbot from "./components/chatbot"; // chatbot component
 import Navbar from "./components/Navbar";
 import { FinanceProvider, useFinance } from "./context/FinanceContext";
+import BudgetManagement from "./pages/BudgetManagement";
+import CalendarPage from "./pages/CalendarPage";
+import DebugAuth from "./pages/DebugAuth";
+import GitHubCallback from "./pages/GitHubCallback";
+import LandingPage from "./pages/LandingPage";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import TestAuth from "./pages/TestAuth";
+import TransactionManagement from "./pages/TransactionManagement";
 
 function AppWrapper() {
   return (
@@ -56,6 +57,7 @@ function App() {
 
       <Routes>
         <Route path="/login" element={<Login setUser={setUser} />} />
+        <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/register" element={<Register />} />
         <Route path="/auth/github/callback" element={<GitHubCallback />} />
         <Route path="/debug" element={<DebugAuth />} />
