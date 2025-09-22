@@ -8,11 +8,11 @@ react-chartjs-2
 tailwindcss
 @tailwindcss/vite
 
-backend(node)
-express 
-axios 
-dotenv 
-body-parser 
+backend(node) npm install
+express
+axios
+dotenv
+body-parser
 cors
 google-auth-library
 @octokit/rest
@@ -20,4 +20,5 @@ bcrypt
 jsonwebtoken
 mongoose
 
-backend(python)
+backend(python) pip install
+google-generativeai
