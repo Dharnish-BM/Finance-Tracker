@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Edit2, Trash2, Search, Filter, DollarSign, TrendingUp, TrendingDown } from "lucide-react";
+import { Plus, Edit2, Trash2, Search, Filter, DollarSign, TrendingUp, TrendingDown, Download } from "lucide-react";
 import { useFinance } from "../context/FinanceContext";
 
 const TransactionManagement = () => {
@@ -109,6 +109,41 @@ const TransactionManagement = () => {
     
     return matchesSearch && matchesCategory && matchesType;
   });
+
+  const escapeCsv = (value) => {
+    if (value === null || value === undefined) return "";
+    const str = String(value);
+    if (/[",\n]/.test(str)) {
+      return '"' + str.replace(/"/g, '""') + '"';
+    }
+    return str;
+  };
+
+  const handleGenerateReport = () => {
+    const rows = filteredTransactions.map(t => ({
+      Date: new Date(t.date).toLocaleDateString(),
+      Type: t.type,
+      Category: t.category,
+      Description: t.description,
+      Amount: t.amount.toFixed(2)
+    }));
+
+    const headers = ["Date","Type","Category","Description","Amount"];
+    const csvLines = [headers.join(",")].concat(
+      rows.map(r => headers.map(h => escapeCsv(r[h])).join(","))
+    );
+    const csvContent = "\uFEFF" + csvLines.join("\n"); // BOM for Excel UTF-8
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `transactions_report_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
 
   return (
@@ -221,16 +256,27 @@ const TransactionManagement = () => {
               </select>
             </div>
 
-            {/* Add Transaction Button */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setShowForm(true)}
-              className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-2 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Add Transaction
-            </motion.button>
+            {/* Actions */}
+            <div className="flex gap-3">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleGenerateReport}
+                className="bg-white text-purple-700 border border-purple-200 px-4 py-2 rounded-lg font-semibold shadow-sm hover:shadow transition-all duration-200 flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Generate Report
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowForm(true)}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-2 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Add Transaction
+              </motion.button>
+            </div>
           </div>
         </motion.div>
 
