@@ -1,4 +1,3 @@
-// src/components/SpeakWithStatement.jsx
 import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -18,7 +17,6 @@ function SpeakWithStatement() {
     try {
       const token = localStorage.getItem("token");
 
-      // Update port if your FastAPI runs on a different one (default 8000)
       const res = await axios.post(
         "http://localhost:8000/chat-statement",
         { question },
@@ -41,35 +39,44 @@ function SpeakWithStatement() {
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md mb-6">
-      <h2 className="text-xl font-semibold mb-2 text-gray-900">
-        Ask About Your Statement
+    <div className="bg-white rounded-2xl shadow-lg p-5 h-[260px] flex flex-col">
+      {/* Header */}
+      <h2 className="text-lg font-semibold mb-3 text-gray-900 border-b pb-2">
+        💬 Speak With Your Statement
       </h2>
 
-      <div className="flex flex-col md:flex-row gap-4">
+      {/* Chat Area */}
+      <div className="flex-1 overflow-y-auto bg-gray-50 rounded-lg p-3 border text-sm">
+        {answer ? (
+          <div className="bg-purple-100 text-gray-800 p-3 rounded-lg shadow-sm w-fit max-w-[90%]">
+            <strong>Answer:</strong> {answer}
+          </div>
+        ) : (
+          <p className="text-gray-500 italic">No conversation yet. Ask something!</p>
+        )}
+      </div>
+
+      {/* Input Area */}
+      <div className="mt-3 flex gap-2">
         <input
           type="text"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          placeholder="Ask something about your uploaded statement..."
-          className="flex-1 border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-purple-400"
+          placeholder="Ask about your statement..."
+          className="flex-1 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
         />
         <button
           onClick={handleAsk}
           disabled={loading}
-          className={`${
-            loading ? "bg-purple-400 cursor-not-allowed" : "bg-[#7209b7] hover:bg-[#9d4edd]"
-          } text-white px-4 py-2 rounded-lg transition`}
+          className={`px-4 py-2 rounded-lg text-sm font-medium text-white transition ${
+            loading
+              ? "bg-purple-300 cursor-not-allowed"
+              : "bg-gradient-to-r from-[#7209b7] to-[#9d4edd] hover:scale-[1.03]"
+          }`}
         >
-          {loading ? "Processing..." : "Ask"}
+          {loading ? "..." : "Ask"}
         </button>
       </div>
-
-      {answer && (
-        <div className="mt-4 p-3 bg-gray-100 rounded-lg border">
-          <strong>Answer:</strong> {answer}
-        </div>
-      )}
     </div>
   );
 }

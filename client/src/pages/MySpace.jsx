@@ -8,18 +8,21 @@ import MonthlySummariser from "../components/MonthlySummariser";
 function MySpace() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#e0c3fc] to-[#8ec5fc] pt-24 px-6">
-      <h1 className="text-3xl font-bold mb-4 text-gray-900">
+      <h1 className="text-3xl font-bold mb-6 text-gray-900">
         MySpace - Finance Dashboard
       </h1>
 
-      {/* Upload Statement Component */}
-      <div className="mb-6">
-        <UploadStatement />
-      </div>
+      {/* Upload + Chat Row */}
+      <div className="flex flex-col md:flex-row gap-6 mb-6">
+        {/* Upload widget */}
+        <div className="flex-shrink-0">
+          <UploadStatement />
+        </div>
 
-      {/* Speak With Statement Component */}
-      <div className="mb-6">
-        <SpeakWithStatement />
+        {/* Chat window expands */}
+        <div className="flex-1">
+          <SpeakWithStatement />
+        </div>
       </div>
 
       {/* Weekly & Monthly Summaries */}

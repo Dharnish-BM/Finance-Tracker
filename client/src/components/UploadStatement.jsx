@@ -8,12 +8,27 @@ function UploadStatement() {
   const [loading, setLoading] = useState(false);
 
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+    const selected = e.target.files[0];
+    if (selected && selected.type !== "application/pdf") {
+      toast.error("Only PDF files are allowed!");
+      return;
+    }
+    setFile(selected);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const dropped = e.dataTransfer.files[0];
+    if (dropped && dropped.type !== "application/pdf") {
+      toast.error("Only PDF files are allowed!");
+      return;
+    }
+    setFile(dropped);
   };
 
   const handleUpload = async () => {
     if (!file) {
-      toast.error("Please select a PDF file to upload!");
+      toast.error("Please select or drop a PDF file!");
       return;
     }
 
@@ -40,22 +55,40 @@ function UploadStatement() {
   };
 
   return (
-    <div className="max-w-xl mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4">Upload Bank Statement</h2>
+    <div className="bg-white rounded-2xl shadow-lg p-5 w-[320px] h-[260px] flex flex-col justify-between">
+      <h2 className="text-lg font-semibold mb-2 text-gray-900 text-center">
+        📑 Upload Statement
+      </h2>
 
+      {/* Drag & Drop Area */}
+      <div
+        onDrop={handleDrop}
+        onDragOver={(e) => e.preventDefault()}
+        className="border-2 border-dashed border-purple-400 rounded-lg p-4 text-center cursor-pointer hover:bg-purple-50 transition text-sm"
+        onClick={() => document.getElementById("fileInput").click()}
+      >
+        {file ? (
+          <p className="text-gray-700">📄 {file.name}</p>
+        ) : (
+          <p className="text-gray-500">Drag & drop a PDF or click</p>
+        )}
+      </div>
+
+      {/* Hidden file input */}
       <input
         type="file"
+        id="fileInput"
         accept="application/pdf"
         onChange={handleFileChange}
-        className="mb-4"
+        className="hidden"
       />
 
       <button
         onClick={handleUpload}
         disabled={loading}
-        className="px-6 py-2 bg-gradient-to-r from-[#7209b7] to-[#9d4edd] text-white rounded-lg shadow-md hover:scale-105 transition"
+        className="mt-4 w-full py-2 bg-gradient-to-r from-[#7209b7] to-[#9d4edd] text-white text-sm font-medium rounded-lg shadow hover:scale-[1.02] transition"
       >
-        {loading ? "Uploading..." : "Upload PDF"}
+        {loading ? "Uploading..." : "Upload"}
       </button>
 
       {/* Toast notifications */}
