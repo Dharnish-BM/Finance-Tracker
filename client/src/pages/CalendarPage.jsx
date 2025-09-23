@@ -16,90 +16,125 @@ const daysRemaining = (dueDate) => {
 const getNextDueDate = (dueDate, recurring) => {
   const date = new Date(dueDate);
   switch (recurring) {
-    case "daily": date.setDate(date.getDate() + 1); break;
-    case "weekly": date.setDate(date.getDate() + 7); break;
-    case "monthly": date.setMonth(date.getMonth() + 1); break;
-    case "yearly": date.setFullYear(date.getFullYear() + 1); break;
-    default: break;
+    case "daily":
+      date.setDate(date.getDate() + 1);
+      break;
+    case "weekly":
+      date.setDate(date.getDate() + 7);
+      break;
+    case "monthly":
+      date.setMonth(date.getMonth() + 1);
+      break;
+    case "yearly":
+      date.setFullYear(date.getFullYear() + 1);
+      break;
+    default:
+      break;
   }
   return date.toISOString().split("T")[0];
 };
 
 // Big Calendar localizer
 const locales = { "en-US": enUS };
-const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
-
-// Circle badge
-const EventBadge = ({ event }) => {
-  const color = event.paid
-    ? "bg-green-500"
-    : event.remaining < 3
-    ? "bg-red-500"
-    : event.remaining < 7
-    ? "bg-yellow-400"
-    : "bg-blue-500";
-
-  return (
-    <div
-      className={`w-4 h-4 rounded-full ${color}`}
-      title={`${event.title} - ₹${event.amount} • ${event.paid ? "Paid" : "Pending"} • Due in ${event.remaining} days`}
-    />
-  );
-};
-
-// Wrapper to align events at the bottom center
-const EventContainer = ({ children }) => {
-  return (
-    <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-2">
-      {children}
-    </div>
-  );
-};
+const localizer = dateFnsLocalizer({
+  format,
+  parse,
+  startOfWeek,
+  getDay,
+  locales,
+});
 
 function CalendarPage() {
   const [payments, setPayments] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editPayment, setEditPayment] = useState(null);
-  const [form, setForm] = useState({ name:"", amount:"", dueDate:"", recurring:"none", paid:false });
+  const [form, setForm] = useState({
+    name: "",
+    amount: "",
+    dueDate: "",
+    recurring: "none",
+    paid: false,
+  });
 
   // Load & Save payments
-  useEffect(() => { setPayments(JSON.parse(localStorage.getItem("payments")) || []); }, []);
-  useEffect(() => { localStorage.setItem("payments", JSON.stringify(payments)); }, [payments]);
+  useEffect(() => {
+    setPayments(JSON.parse(localStorage.getItem("payments")) || []);
+  }, []);
+  useEffect(() => {
+    localStorage.setItem("payments", JSON.stringify(payments));
+  }, [payments]);
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = () => {
-    if(!form.name || !form.amount || !form.dueDate) return;
-    if(editPayment){
-      setPayments(payments.map(p => p.id === editPayment.id ? { ...form, id: editPayment.id } : p));
+    if (!form.name || !form.amount || !form.dueDate) return;
+    if (editPayment) {
+      setPayments(
+        payments.map((p) =>
+          p.id === editPayment.id ? { ...form, id: editPayment.id } : p
+        )
+      );
       setEditPayment(null);
     } else {
       setPayments([...payments, { ...form, id: crypto.randomUUID() }]);
     }
-    setForm({ name:"", amount:"", dueDate:"", recurring:"none", paid:false });
+    setForm({
+      name: "",
+      amount: "",
+      dueDate: "",
+      recurring: "none",
+      paid: false,
+    });
     setModalOpen(false);
   };
 
-  const handleDelete = (id) => setPayments(payments.filter(p => p.id !== id));
-  const handleEdit = (payment) => { setEditPayment(payment); setForm(payment); setModalOpen(true); };
+  const handleDelete = (id) =>
+    setPayments(payments.filter((p) => p.id !== id));
+  const handleEdit = (payment) => {
+    setEditPayment(payment);
+    setForm(payment);
+    setModalOpen(true);
+  };
 
   const markAsPaid = (payment) => {
-    setPayments(prev => [
-      ...prev.map(p => p.id === payment.id ? { ...p, paid:true } : p),
-      ...(payment.recurring !== "none" ? [{ ...payment, id: crypto.randomUUID(), dueDate: getNextDueDate(payment.dueDate, payment.recurring), paid:false }] : [])
+    setPayments((prev) => [
+      ...prev.map((p) =>
+        p.id === payment.id ? { ...p, paid: true } : p
+      ),
+      ...(payment.recurring !== "none"
+        ? [
+            {
+              ...payment,
+              id: crypto.randomUUID(),
+              dueDate: getNextDueDate(payment.dueDate, payment.recurring),
+              paid: false,
+            },
+          ]
+        : []),
     ]);
   };
 
   // Progress
   const today = new Date();
-  const totalThisMonth = payments.filter(p => new Date(p.dueDate).getMonth() === today.getMonth());
-  const completed = totalThisMonth.filter(p => p.paid).length;
-  const progress = totalThisMonth.length ? (completed / totalThisMonth.length) * 100 : 0;
+  const totalThisMonth = payments.filter(
+    (p) => new Date(p.dueDate).getMonth() === today.getMonth()
+  );
+  const completed = totalThisMonth.filter((p) => p.paid).length;
+  const progress = totalThisMonth.length
+    ? (completed / totalThisMonth.length) * 100
+    : 0;
 
-  const sortedPayments = useMemo(() => [...payments].sort((a,b)=> new Date(a.dueDate)-new Date(b.dueDate)), [payments]);
+  const sortedPayments = useMemo(
+    () =>
+      [...payments].sort(
+        (a, b) => new Date(a.dueDate) - new Date(b.dueDate)
+      ),
+    [payments]
+  );
 
   // Events for BigCalendar
-  const events = payments.map(p => ({
+  const events = payments.map((p) => ({
     id: p.id,
     title: p.name,
     start: parseISO(p.dueDate),
@@ -107,86 +142,96 @@ function CalendarPage() {
     allDay: true,
     paid: p.paid,
     amount: p.amount,
-    remaining: daysRemaining(p.dueDate)
+    remaining: daysRemaining(p.dueDate),
   }));
 
-  const nextPayment = sortedPayments.find(p => !p.paid);
+  const paymentsByDate = useMemo(() => {
+    return payments.reduce((acc, p) => {
+      const key = new Date(p.dueDate).toDateString();
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(p);
+      return acc;
+    }, {});
+  }, [payments]);
+
+  const nextPayment = sortedPayments.find((p) => !p.paid);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
       className="w-screen min-h-screen flex flex-col lg:flex-row bg-gradient-to-br from-[#e0c3fc] to-[#8ec5fc] pt-16"
     >
       {/* Calendar */}
-      <div className="w-full lg:w-[70%] flex-1 p-4" style={{ height: 'calc(100vh - 4rem)' }}>
+      <div
+        className="w-full lg:w-[70%] flex-1 p-4"
+        style={{ height: "calc(100vh - 4rem)" }}
+      >
         <div className="h-full bg-white/90 rounded-2xl shadow-lg p-4 flex flex-col">
           <BigCalendar
-  localizer={localizer}
-  events={events}
-  startAccessor="start"
-  endAccessor="end"
-  style={{ flex: 1 }}
-  views={['month', 'week', 'day']}
-  selectable
-  onSelectSlot={slotInfo => {
-    setForm({
-      ...form,
-      dueDate: slotInfo.start.toISOString().split('T')[0],
-      recurring: 'none',
-      paid: false,
-    });
-    setEditPayment(null);
-    setModalOpen(true);
-  }}
-  onSelectEvent={event =>
-    handleEdit(payments.find(p => p.id === event.id))
-  }
-  components={{
-    // Custom date cell for month view
-    month: {
-      dateCellWrapper: ({ children, value }) => {
-        const dayEvents = events.filter(
-          ev =>
-            new Date(ev.start).toDateString() === value.toDateString()
-        );
-
-        return (
-          <div className="relative w-full h-full">
-            {children}
-            {dayEvents.length > 0 && (
-              <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-2">
-                {dayEvents.map(ev => {
-                  const color = ev.paid
-                    ? "bg-green-500"
-                    : ev.remaining < 3
-                    ? "bg-red-500"
-                    : ev.remaining < 7
-                    ? "bg-yellow-400"
-                    : "bg-blue-500";
-
+            localizer={localizer}
+            events={events}
+            startAccessor="start"
+            endAccessor="end"
+            style={{ flex: 1 }}
+            views={["month", "week", "day"]}
+            selectable
+            onSelectSlot={(slotInfo) => {
+              setForm({
+                ...form,
+                dueDate: slotInfo.start.toISOString().split("T")[0],
+                recurring: "none",
+                paid: false,
+              });
+              setEditPayment(null);
+              setModalOpen(true);
+            }}
+            onSelectEvent={(event) =>
+              handleEdit(payments.find((p) => p.id === event.id))
+            }
+            eventPropGetter={() => ({ style: { display: "none" } })}
+            components={{
+              month: {
+                dateHeader: ({ date, label }) => {
+                  const dayPayments =
+                    paymentsByDate[date.toDateString()] || [];
                   return (
-                    <div
-                      key={ev.id}
-                      className={`w-4 h-4 rounded-full ${color}`}
-                      title={`${ev.title} - ₹${ev.amount} • ${ev.paid ? "Paid" : "Pending"} • Due in ${ev.remaining} days`}
-                    />
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        );
-      },
-    },
-  }}
-  eventPropGetter={() => ({
-    style: {
-      display: "none", // completely hide default event box
-    },
-  })}
-  popup
-/>
+                    <div className="relative h-full flex flex-col items-center">
+                      {/* Day number at the top */}
+                      <div className="text-sm font-medium">{label}</div>
 
+                      {/* Payments at the bottom */}
+                      {dayPayments.length > 0 && (
+                        <div className="mt-auto w-full flex flex-col gap-1 px-1 pb-1">
+                          {dayPayments.map((p) => (
+                            <div
+                              key={p.id}
+                              title={`${p.name} - ₹${p.amount} (${
+                                p.paid ? "Paid" : "Pending"
+                              })`}
+                              className={`text-xs text-white rounded-md px-1 py-0.5 truncate text-center ${
+                                p.paid
+                                  ? "bg-green-500"
+                                  : daysRemaining(p.dueDate) < 3
+                                  ? "bg-red-500"
+                                  : daysRemaining(p.dueDate) < 7
+                                  ? "bg-yellow-500 text-black"
+                                  : "bg-blue-500"
+                              }`}
+                            >
+                              {p.name}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                },
+              },
+            }}
+            popup
+          />
         </div>
       </div>
 
@@ -195,29 +240,78 @@ function CalendarPage() {
         <div className="flex-1 bg-white/90 rounded-2xl shadow-lg p-4 flex flex-col">
           <h2 className="font-bold text-lg mb-4 flex justify-between items-center">
             Scheduled Payments
-            <button onClick={()=>{setForm({name:'',amount:'',dueDate:'',recurring:'none',paid:false}); setEditPayment(null); setModalOpen(true)}} 
-                    className="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-600">+ Add</button>
+            <button
+              onClick={() => {
+                setForm({
+                  name: "",
+                  amount: "",
+                  dueDate: "",
+                  recurring: "none",
+                  paid: false,
+                });
+                setEditPayment(null);
+                setModalOpen(true);
+              }}
+              className="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-600"
+            >
+              + Add
+            </button>
           </h2>
 
           {nextPayment && (
             <div className="bg-yellow-100 rounded-lg p-2 mb-3 shadow flex items-center justify-between">
-              <span>🔥 Next: {nextPayment.name} - ₹{nextPayment.amount}</span>
-              <span className="text-xs text-gray-600">{daysRemaining(nextPayment.dueDate)} days left</span>
+              <span>
+                🔥 Next: {nextPayment.name} - ₹{nextPayment.amount}
+              </span>
+              <span className="text-xs text-gray-600">
+                {daysRemaining(nextPayment.dueDate)} days left
+              </span>
             </div>
           )}
 
           <ul className="flex flex-col gap-3 overflow-y-auto max-h-[calc(100vh-24rem)] pr-2">
-            {sortedPayments.map(p => (
-              <li key={p.id} className={`flex justify-between items-center p-3 rounded-lg shadow transition-colors ${daysRemaining(p.dueDate)<3?'bg-red-100':daysRemaining(p.dueDate)<7?'bg-yellow-100':'bg-green-100'}`}>
+            {sortedPayments.map((p) => (
+              <li
+                key={p.id}
+                className={`flex justify-between items-center p-3 rounded-lg shadow transition-colors ${
+                  daysRemaining(p.dueDate) < 3
+                    ? "bg-red-100"
+                    : daysRemaining(p.dueDate) < 7
+                    ? "bg-yellow-100"
+                    : "bg-green-100"
+                }`}
+              >
                 <div className="flex flex-col">
                   <p className="font-semibold">{p.name}</p>
-                  <p className="text-sm text-gray-600">₹{parseFloat(p.amount)} - Due in {daysRemaining(p.dueDate)} days</p>
-                  <p className="text-xs text-gray-500">{p.paid?'Paid':'Pending'}</p>
+                  <p className="text-sm text-gray-600">
+                    ₹{parseFloat(p.amount)} - Due in{" "}
+                    {daysRemaining(p.dueDate)} days
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {p.paid ? "Paid" : "Pending"}
+                  </p>
                 </div>
                 <div className="flex gap-2">
-                  {!p.paid && <button onClick={()=>markAsPaid(p)} className="text-green-500 hover:underline">Mark Paid</button>}
-                  <button onClick={()=>handleEdit(p)} className="text-blue-500 hover:underline">Edit</button>
-                  <button onClick={()=>handleDelete(p.id)} className="text-red-500 hover:underline">Delete</button>
+                  {!p.paid && (
+                    <button
+                      onClick={() => markAsPaid(p)}
+                      className="text-green-500 hover:underline"
+                    >
+                      Mark Paid
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleEdit(p)}
+                    className="text-blue-500 hover:underline"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(p.id)}
+                    className="text-red-500 hover:underline"
+                  >
+                    Delete
+                  </button>
                 </div>
               </li>
             ))}
@@ -226,9 +320,16 @@ function CalendarPage() {
 
         <div className="h-32 bg-white/90 rounded-2xl shadow-lg p-4 flex flex-col justify-center">
           <h2 className="font-bold text-lg mb-2">This Month Progress</h2>
-          <p className="text-sm mb-2">{completed}/{totalThisMonth.length} payments completed</p>
+          <p className="text-sm mb-2">
+            {completed}/{totalThisMonth.length} payments completed
+          </p>
           <div className="w-full bg-gray-200 rounded-full h-3">
-            <motion.div className="bg-green-500 h-3 rounded-full" initial={{width:0}} animate={{width:`${progress}%`}} transition={{duration:0.5}}/>
+            <motion.div
+              className="bg-green-500 h-3 rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.5 }}
+            />
           </div>
         </div>
       </div>
@@ -236,12 +337,44 @@ function CalendarPage() {
       {/* Modal */}
       {modalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <motion.div initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} transition={{duration:0.3}} className="bg-white rounded-3xl shadow-2xl w-96 flex flex-col gap-4 p-6">
-            <h3 className="font-bold text-xl text-center">{editPayment?'Edit Payment':'Add Payment'}</h3>
-            <input type="text" name="name" placeholder="Bill Name" value={form.name} onChange={handleChange} className="border px-4 py-2 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-400"/>
-            <input type="number" name="amount" placeholder="Amount" value={form.amount} onChange={handleChange} className="border px-4 py-2 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-400"/>
-            <input type="date" name="dueDate" value={form.dueDate} onChange={handleChange} className="border px-4 py-2 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-400"/>
-            <select name="recurring" value={form.recurring} onChange={handleChange} className="border px-4 py-2 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-400">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+            className="bg-white rounded-3xl shadow-2xl w-96 flex flex-col gap-4 p-6"
+          >
+            <h3 className="font-bold text-xl text-center">
+              {editPayment ? "Edit Payment" : "Add Payment"}
+            </h3>
+            <input
+              type="text"
+              name="name"
+              placeholder="Bill Name"
+              value={form.name}
+              onChange={handleChange}
+              className="border px-4 py-2 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+            <input
+              type="number"
+              name="amount"
+              placeholder="Amount"
+              value={form.amount}
+              onChange={handleChange}
+              className="border px-4 py-2 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+            <input
+              type="date"
+              name="dueDate"
+              value={form.dueDate}
+              onChange={handleChange}
+              className="border px-4 py-2 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+            <select
+              name="recurring"
+              value={form.recurring}
+              onChange={handleChange}
+              className="border px-4 py-2 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
+            >
               <option value="none">None</option>
               <option value="daily">Daily</option>
               <option value="weekly">Weekly</option>
@@ -249,8 +382,21 @@ function CalendarPage() {
               <option value="yearly">Yearly</option>
             </select>
             <div className="flex justify-end gap-3 mt-2">
-              <button onClick={()=>{setModalOpen(false); setEditPayment(null)}} className="px-5 py-2 rounded-xl border hover:bg-gray-100">Cancel</button>
-              <button onClick={handleSubmit} className="px-5 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600">Save</button>
+              <button
+                onClick={() => {
+                  setModalOpen(false);
+                  setEditPayment(null);
+                }}
+                className="px-5 py-2 rounded-xl border hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                className="px-5 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600"
+              >
+                Save
+              </button>
             </div>
           </motion.div>
         </div>
