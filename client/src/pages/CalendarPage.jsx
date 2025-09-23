@@ -29,6 +29,24 @@ const getNextDueDate = (dueDate, recurring) => {
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
 
+// Custom Event Component → bigger circle badge with tooltip
+const EventBadge = ({ event }) => {
+  const color = event.paid
+    ? "bg-green-500"
+    : event.remaining < 3
+    ? "bg-red-500"
+    : event.remaining < 7
+    ? "bg-yellow-400"
+    : "bg-blue-500";
+
+  return (
+    <div
+      className={`w-4 h-4 rounded-full ${color} inline-block`}
+      title={`${event.title} - ₹${event.amount} • ${event.paid ? "Paid" : "Pending"} • Due in ${event.remaining} days`}
+    />
+  );
+};
+
 function CalendarPage() {
   const [payments, setPayments] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -83,26 +101,6 @@ function CalendarPage() {
     remaining: daysRemaining(p.dueDate)
   }));
 
-  const paymentsByDate = useMemo(() => {
-    return payments.reduce((acc, p) => {
-      const key = new Date(p.dueDate).toDateString();
-      if(!acc[key]) acc[key] = [];
-      acc[key].push(p);
-      return acc;
-    }, {});
-  }, [payments]);
-
-  const eventStyleGetter = (event) => ({
-    style: {
-      backgroundColor: event.paid ? '#22c55e' : event.remaining < 3 ? '#ef4444' : event.remaining < 7 ? '#facc15' : '#3b82f6',
-      borderRadius: '8px',
-      border: 'none',
-      color: '#000',
-      padding: '4px',
-      fontSize: '0.9rem',
-    }
-  });
-
   const nextPayment = sortedPayments.find(p => !p.paid);
 
   return (
@@ -127,26 +125,16 @@ function CalendarPage() {
               setModalOpen(true);
             }}
             onSelectEvent={event => handleEdit(payments.find(p => p.id === event.id))}
-            eventPropGetter={eventStyleGetter}
             components={{
-              month: {
-                dateCellWrapper: ({ children, value }) => {
-                  const dayPayments = paymentsByDate[value.toDateString()] || [];
-                  return (
-                    <div className="relative">
-                      {children}
-                      {dayPayments.length > 0 && (
-                        <div className="absolute bottom-1 left-1 flex gap-1 flex-wrap">
-                          {dayPayments.map(p => (
-                            <span key={p.id} className={`w-2 h-2 rounded-full ${p.paid ? 'bg-green-500' : daysRemaining(p.dueDate)<3 ? 'bg-red-500' : daysRemaining(p.dueDate)<7 ? 'bg-yellow-500' : 'bg-blue-500'}`}></span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                }
-              }
+              event: EventBadge,
             }}
+            eventPropGetter={() => ({
+              style: {
+                backgroundColor: "transparent", // ✅ removes blue rectangle
+                border: "none",
+                padding: 0,
+              },
+            })}
             popup
           />
         </div>
