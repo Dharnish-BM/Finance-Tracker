@@ -27,7 +27,7 @@ function Navbar({ user, setUser }) {
             to="/"
             className="text-2xl font-extrabold tracking-wide hover:text-[#f1f1f1] transition"
           >
-            FinanceTracker
+            ZENITH
           </Link>
         </motion.div>
 
