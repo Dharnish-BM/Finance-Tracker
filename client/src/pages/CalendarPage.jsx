@@ -1,11 +1,15 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
+import "../styles/CalendarCustom.css"; // <-- we'll create this
 
 // Utility function to calculate remaining days
 const daysRemaining = (dueDate) => {
   const today = new Date();
   const due = new Date(dueDate);
-  return Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+  const diff = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+  return diff < 0 ? 0 : diff;
 };
 
 // Utility function for recurring payments
@@ -34,7 +38,14 @@ function CalendarPage() {
   const [payments, setPayments] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editPayment, setEditPayment] = useState(null);
-  const [form, setForm] = useState({ name: "", amount: "", dueDate: "", recurring: "none", paid: false });
+  const [form, setForm] = useState({
+    name: "",
+    amount: "",
+    dueDate: "",
+    recurring: "none",
+    paid: false,
+  });
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   // Load from localStorage
   useEffect(() => {
@@ -47,42 +58,74 @@ function CalendarPage() {
     localStorage.setItem("payments", JSON.stringify(payments));
   }, [payments]);
 
-  // Handle form changes
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
-  // Add or Edit payment
   const handleSubmit = () => {
     if (!form.name || !form.amount || !form.dueDate) return;
 
     if (editPayment) {
-      setPayments(payments.map((p) => (p.id === editPayment.id ? { ...form, id: editPayment.id } : p)));
+      setPayments(
+        payments.map((p) =>
+          p.id === editPayment.id ? { ...form, id: editPayment.id } : p
+        )
+      );
       setEditPayment(null);
     } else {
       setPayments([...payments, { ...form, id: crypto.randomUUID() }]);
     }
 
-    setForm({ name: "", amount: "", dueDate: "", recurring: "none", paid: false });
+    setForm({
+      name: "",
+      amount: "",
+      dueDate: "",
+      recurring: "none",
+      paid: false,
+    });
     setModalOpen(false);
   };
 
-  // Delete payment
-  const handleDelete = (id) => setPayments(payments.filter((p) => p.id !== id));
-
-  // Edit payment
+  const handleDelete = (id) =>
+    setPayments(payments.filter((p) => p.id !== id));
   const handleEdit = (payment) => {
     setEditPayment(payment);
     setForm(payment);
     setModalOpen(true);
   };
 
+  const markAsPaid = (payment) => {
+    setPayments((prev) =>
+      prev.map((p) => (p.id === payment.id ? { ...p, paid: true } : p))
+    );
+
+    if (payment.recurring !== "none") {
+      const nextDate = getNextDueDate(payment.dueDate, payment.recurring);
+      setPayments((prev) => [
+        ...prev,
+        {
+          ...payment,
+          id: crypto.randomUUID(),
+          dueDate: nextDate,
+          paid: false,
+        },
+      ]);
+    }
+  };
+
   // Progress Tracker
   const today = new Date();
-  const totalThisMonth = payments.filter((p) => new Date(p.dueDate).getMonth() === today.getMonth());
+  const totalThisMonth = payments.filter(
+    (p) => new Date(p.dueDate).getMonth() === today.getMonth()
+  );
   const completed = totalThisMonth.filter((p) => p.paid).length;
-  const progress = totalThisMonth.length ? (completed / totalThisMonth.length) * 100 : 0;
+  const progress = totalThisMonth.length
+    ? (completed / totalThisMonth.length) * 100
+    : 0;
 
-  // Sort payments by upcoming due date
-  const sortedPayments = payments.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+  // Sort payments
+  const sortedPayments = [...payments].sort(
+    (a, b) => new Date(a.dueDate) - new Date(b.dueDate)
+  );
 
   return (
     <motion.div
@@ -92,20 +135,51 @@ function CalendarPage() {
       className="min-h-screen pt-24 px-6 bg-gradient-to-br from-[#e0c3fc] to-[#8ec5fc] flex gap-6 pb-6"
     >
       {/* Calendar Section */}
-      <div className="w-[70%] bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden">
-        <iframe
-          src="https://calendar.google.com/calendar/embed?height=700&wkst=1&ctz=Asia%2FKolkata&showPrint=0&showTitle=0"
-          style={{ border: "1px solid #777" }}
-          className="w-full h-[calc(100vh-8rem)] rounded-2xl"
-          frameBorder="0"
-          scrolling="no"
-          title="Google Calendar"
-        ></iframe>
+      <div className="w-[70%] h-[calc(100vh-6rem)] bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 flex flex-col">
+        <Calendar
+          onChange={setSelectedDate}
+          value={selectedDate}
+          className="flex-1 w-full"
+          tileContent={({ date }) => {
+            const paymentForDay = payments.filter(
+              (p) =>
+                new Date(p.dueDate).toDateString() === date.toDateString()
+            );
+
+            if (!paymentForDay.length) return null;
+
+            return (
+              <ul className="mt-1 flex flex-col gap-[2px]">
+                {paymentForDay.map((p) => {
+                  const remaining = daysRemaining(p.dueDate);
+                  let color =
+                    remaining < 3
+                      ? "bg-red-400"
+                      : remaining < 7
+                      ? "bg-yellow-400"
+                      : "bg-green-400";
+                  return (
+                    <li
+                      key={p.id}
+                      className={`${color} text-white text-[10px] px-1 rounded`}
+                    >
+                      {p.name}
+                    </li>
+                  );
+                })}
+              </ul>
+            );
+          }}
+          onClickDay={(date) => {
+            setForm({ ...form, dueDate: date.toISOString().split("T")[0] });
+            setModalOpen(true);
+          }}
+        />
       </div>
 
       {/* Sidebar Cards */}
-      <div className="w-[25%] flex flex-col gap-6">
-        {/* Big Scrollable Payment Card */}
+      <div className="w-[25%] flex flex-col gap-6 h-[calc(100vh-6rem)]">
+        {/* Scheduled Payments Card */}
         <div className="flex-1 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 flex flex-col">
           <h2 className="font-bold text-lg mb-4 flex justify-between items-center">
             Scheduled Payments
@@ -117,9 +191,11 @@ function CalendarPage() {
             </button>
           </h2>
 
-          {sortedPayments.length === 0 && <p className="text-gray-400 mt-4">No payments scheduled</p>}
+          {sortedPayments.length === 0 && (
+            <p className="text-gray-400 mt-4">No payments scheduled</p>
+          )}
 
-          <ul className="flex flex-col gap-3 overflow-y-auto max-h-[calc(100vh-12rem)] pr-2">
+          <ul className="flex flex-col gap-3 overflow-y-auto max-h-[calc(100vh-14rem)] pr-2">
             {sortedPayments.map((payment) => (
               <li
                 key={payment.id}
@@ -134,14 +210,32 @@ function CalendarPage() {
                 <div className="flex flex-col">
                   <p className="font-semibold">{payment.name}</p>
                   <p className="text-sm text-gray-600">
-                    ₹{payment.amount} - Due in {daysRemaining(payment.dueDate)} days
+                    ₹{payment.amount} - Due in {daysRemaining(payment.dueDate)}{" "}
+                    days
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {payment.paid ? "Paid" : "Pending"}
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => handleEdit(payment)} className="text-blue-500 hover:underline">
+                  {!payment.paid && (
+                    <button
+                      onClick={() => markAsPaid(payment)}
+                      className="text-green-500 hover:underline"
+                    >
+                      Mark Paid
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleEdit(payment)}
+                    className="text-blue-500 hover:underline"
+                  >
                     Edit
                   </button>
-                  <button onClick={() => handleDelete(payment.id)} className="text-red-500 hover:underline">
+                  <button
+                    onClick={() => handleDelete(payment.id)}
+                    className="text-red-500 hover:underline"
+                  >
                     Delete
                   </button>
                 </div>
@@ -150,10 +244,12 @@ function CalendarPage() {
           </ul>
         </div>
 
-        {/* Small Progress Card */}
+        {/* Progress Card */}
         <div className="h-32 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 flex flex-col justify-center">
           <h2 className="font-bold text-lg mb-2">This Month Progress</h2>
-          <p className="text-sm mb-2">{completed}/{totalThisMonth.length} payments completed</p>
+          <p className="text-sm mb-2">
+            {completed}/{totalThisMonth.length} payments completed
+          </p>
           <div className="w-full bg-gray-200 rounded-full h-3">
             <div
               className="bg-green-500 h-3 rounded-full transition-all"
@@ -167,7 +263,9 @@ function CalendarPage() {
       {modalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
           <div className="bg-white rounded-2xl shadow-lg p-6 w-80 flex flex-col gap-4 animate-fade-in">
-            <h3 className="font-bold text-lg">{editPayment ? "Edit Payment" : "Add Payment"}</h3>
+            <h3 className="font-bold text-lg">
+              {editPayment ? "Edit Payment" : "Add Payment"}
+            </h3>
             <input
               type="text"
               name="name"

@@ -1,0 +1,24 @@
+.react-calendar {
+  width: 100% !important;
+  height: 100% !important;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+}
+
+.react-calendar__tile {
+  padding: 10px 0 !important;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.react-calendar__tile--now {
+  background: #fcd34d !important; /* yellow for today */
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+.react-calendar__tile--active {
+  background: #3b82f6 !important; /* blue for selected */
+  color: white !important;
+}
