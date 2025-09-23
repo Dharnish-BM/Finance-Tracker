@@ -27,20 +27,13 @@ const getNextDueDate = (dueDate, recurring) => {
 
 // Big Calendar localizer
 const locales = { "en-US": enUS };
-const localizer = dateFnsLocalizer({
-  format,
-  parse,
-  startOfWeek,
-  getDay,
-  locales,
-});
+const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
 
 function CalendarPage() {
   const [payments, setPayments] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editPayment, setEditPayment] = useState(null);
   const [form, setForm] = useState({ name:"", amount:"", dueDate:"", recurring:"none", paid:false });
-  const [selectedDate, setSelectedDate] = useState(new Date());
 
   // Load & Save payments
   useEffect(() => { setPayments(JSON.parse(localStorage.getItem("payments")) || []); }, []);
@@ -78,73 +71,104 @@ function CalendarPage() {
 
   const sortedPayments = useMemo(() => [...payments].sort((a,b)=> new Date(a.dueDate)-new Date(b.dueDate)), [payments]);
 
-  // Convert payments to Big Calendar events
+  // Events for BigCalendar
   const events = payments.map(p => ({
     id: p.id,
-    title: `${p.name} - ₹${p.amount}`,
+    title: p.name,
     start: parseISO(p.dueDate),
     end: parseISO(p.dueDate),
     allDay: true,
     paid: p.paid,
+    amount: p.amount,
     remaining: daysRemaining(p.dueDate)
   }));
 
-  // Custom event style
-  const eventStyleGetter = (event) => {
-    let backgroundColor = event.paid ? '#22c55e' : event.remaining < 3 ? '#ef4444' : event.remaining < 7 ? '#facc15' : '#3b82f6';
-    return {
-      style: {
-        backgroundColor,
-        borderRadius: '8px',
-        border: 'none',
-        color: '#000',
-        padding: '4px',
-        fontSize: '0.9rem',
-      }
-    };
-  }
+  const paymentsByDate = useMemo(() => {
+    return payments.reduce((acc, p) => {
+      const key = new Date(p.dueDate).toDateString();
+      if(!acc[key]) acc[key] = [];
+      acc[key].push(p);
+      return acc;
+    }, {});
+  }, [payments]);
+
+  const eventStyleGetter = (event) => ({
+    style: {
+      backgroundColor: event.paid ? '#22c55e' : event.remaining < 3 ? '#ef4444' : event.remaining < 7 ? '#facc15' : '#3b82f6',
+      borderRadius: '8px',
+      border: 'none',
+      color: '#000',
+      padding: '4px',
+      fontSize: '0.9rem',
+    }
+  });
+
+  const nextPayment = sortedPayments.find(p => !p.paid);
 
   return (
     <motion.div
-  initial={{ opacity: 0, y: 20 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.5 }}
-  className="w-screen min-h-screen flex flex-col lg:flex-row bg-gradient-to-br from-[#e0c3fc] to-[#8ec5fc] pt-16" // pt-16 for navbar
->
+      initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+      className="w-screen min-h-screen flex flex-col lg:flex-row bg-gradient-to-br from-[#e0c3fc] to-[#8ec5fc] pt-16"
+    >
       {/* Calendar */}
-  <div className="w-full lg:w-[70%] flex-1 p-4" style={{ height: 'calc(100vh - 4rem)' }}>
-    <div className="h-full bg-white/90 rounded-2xl shadow-lg p-4 flex flex-col">
-      <BigCalendar
-        localizer={localizer}
-        events={events}
-        startAccessor="start"
-        endAccessor="end"
-        style={{ flex: 1 }}
-        views={['month', 'week', 'day']}
-        onSelectEvent={event => handleEdit(payments.find(p => p.id === event.id))}
-        onSelectSlot={slotInfo => {
-          setForm({ ...form, dueDate: slotInfo.start.toISOString().split('T')[0], recurring:'none', paid:false });
-          setEditPayment(null);
-          setModalOpen(true);
-        }}
-        selectable
-        eventPropGetter={eventStyleGetter}
-        popup
-      />
-    </div>
-  </div>
+      <div className="w-full lg:w-[70%] flex-1 p-4" style={{ height: 'calc(100vh - 4rem)' }}>
+        <div className="h-full bg-white/90 rounded-2xl shadow-lg p-4 flex flex-col">
+          <BigCalendar
+            localizer={localizer}
+            events={events}
+            startAccessor="start"
+            endAccessor="end"
+            style={{ flex: 1 }}
+            views={['month', 'week', 'day']}
+            selectable
+            onSelectSlot={slotInfo => {
+              setForm({ ...form, dueDate: slotInfo.start.toISOString().split('T')[0], recurring:'none', paid:false });
+              setEditPayment(null);
+              setModalOpen(true);
+            }}
+            onSelectEvent={event => handleEdit(payments.find(p => p.id === event.id))}
+            eventPropGetter={eventStyleGetter}
+            components={{
+              month: {
+                dateCellWrapper: ({ children, value }) => {
+                  const dayPayments = paymentsByDate[value.toDateString()] || [];
+                  return (
+                    <div className="relative">
+                      {children}
+                      {dayPayments.length > 0 && (
+                        <div className="absolute bottom-1 left-1 flex gap-1 flex-wrap">
+                          {dayPayments.map(p => (
+                            <span key={p.id} className={`w-2 h-2 rounded-full ${p.paid ? 'bg-green-500' : daysRemaining(p.dueDate)<3 ? 'bg-red-500' : daysRemaining(p.dueDate)<7 ? 'bg-yellow-500' : 'bg-blue-500'}`}></span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+              }
+            }}
+            popup
+          />
+        </div>
+      </div>
 
       {/* Sidebar */}
       <div className="w-full lg:w-[25%] flex flex-col gap-6 p-4">
-        {/* Payment List */}
         <div className="flex-1 bg-white/90 rounded-2xl shadow-lg p-4 flex flex-col">
           <h2 className="font-bold text-lg mb-4 flex justify-between items-center">
             Scheduled Payments
             <button onClick={()=>{setForm({name:'',amount:'',dueDate:'',recurring:'none',paid:false}); setEditPayment(null); setModalOpen(true)}} 
                     className="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-600">+ Add</button>
           </h2>
-          {sortedPayments.length===0 && <p className="text-gray-400 mt-4">No payments scheduled</p>}
-          <ul className="flex flex-col gap-3 overflow-y-auto max-h-[calc(100vh-20rem)] pr-2">
+
+          {nextPayment && (
+            <div className="bg-yellow-100 rounded-lg p-2 mb-3 shadow flex items-center justify-between">
+              <span>🔥 Next: {nextPayment.name} - ₹{nextPayment.amount}</span>
+              <span className="text-xs text-gray-600">{daysRemaining(nextPayment.dueDate)} days left</span>
+            </div>
+          )}
+
+          <ul className="flex flex-col gap-3 overflow-y-auto max-h-[calc(100vh-24rem)] pr-2">
             {sortedPayments.map(p => (
               <li key={p.id} className={`flex justify-between items-center p-3 rounded-lg shadow transition-colors ${daysRemaining(p.dueDate)<3?'bg-red-100':daysRemaining(p.dueDate)<7?'bg-yellow-100':'bg-green-100'}`}>
                 <div className="flex flex-col">
@@ -162,7 +186,6 @@ function CalendarPage() {
           </ul>
         </div>
 
-        {/* Progress */}
         <div className="h-32 bg-white/90 rounded-2xl shadow-lg p-4 flex flex-col justify-center">
           <h2 className="font-bold text-lg mb-2">This Month Progress</h2>
           <p className="text-sm mb-2">{completed}/{totalThisMonth.length} payments completed</p>
@@ -175,7 +198,7 @@ function CalendarPage() {
       {/* Modal */}
       {modalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <div className="bg-white rounded-3xl shadow-2xl w-96 flex flex-col gap-4 p-6 animate-fade-in">
+          <motion.div initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} transition={{duration:0.3}} className="bg-white rounded-3xl shadow-2xl w-96 flex flex-col gap-4 p-6">
             <h3 className="font-bold text-xl text-center">{editPayment?'Edit Payment':'Add Payment'}</h3>
             <input type="text" name="name" placeholder="Bill Name" value={form.name} onChange={handleChange} className="border px-4 py-2 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-400"/>
             <input type="number" name="amount" placeholder="Amount" value={form.amount} onChange={handleChange} className="border px-4 py-2 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-400"/>
@@ -191,7 +214,7 @@ function CalendarPage() {
               <button onClick={()=>{setModalOpen(false); setEditPayment(null)}} className="px-5 py-2 rounded-xl border hover:bg-gray-100">Cancel</button>
               <button onClick={handleSubmit} className="px-5 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600">Save</button>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
     </motion.div>

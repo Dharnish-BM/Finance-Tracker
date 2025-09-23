@@ -1,4 +1,5 @@
 frontend
+
 react-router-dom axios
 framer-motion
 lucide-react
@@ -11,6 +12,7 @@ gapi-script
 react-toastify
 react-big-calendar
 date-fns
+react-tooltip
 
 backend(node) npm install
 express
