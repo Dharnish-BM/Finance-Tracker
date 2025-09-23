@@ -29,7 +29,7 @@ const getNextDueDate = (dueDate, recurring) => {
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
 
-// Custom Event Component → bigger circle badge with tooltip
+// Circle badge
 const EventBadge = ({ event }) => {
   const color = event.paid
     ? "bg-green-500"
@@ -41,9 +41,18 @@ const EventBadge = ({ event }) => {
 
   return (
     <div
-      className={`w-4 h-4 rounded-full ${color} inline-block`}
+      className={`w-4 h-4 rounded-full ${color}`}
       title={`${event.title} - ₹${event.amount} • ${event.paid ? "Paid" : "Pending"} • Due in ${event.remaining} days`}
     />
+  );
+};
+
+// Wrapper to align events at the bottom center
+const EventContainer = ({ children }) => {
+  return (
+    <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-2">
+      {children}
+    </div>
   );
 };
 
@@ -112,31 +121,72 @@ function CalendarPage() {
       <div className="w-full lg:w-[70%] flex-1 p-4" style={{ height: 'calc(100vh - 4rem)' }}>
         <div className="h-full bg-white/90 rounded-2xl shadow-lg p-4 flex flex-col">
           <BigCalendar
-            localizer={localizer}
-            events={events}
-            startAccessor="start"
-            endAccessor="end"
-            style={{ flex: 1 }}
-            views={['month', 'week', 'day']}
-            selectable
-            onSelectSlot={slotInfo => {
-              setForm({ ...form, dueDate: slotInfo.start.toISOString().split('T')[0], recurring:'none', paid:false });
-              setEditPayment(null);
-              setModalOpen(true);
-            }}
-            onSelectEvent={event => handleEdit(payments.find(p => p.id === event.id))}
-            components={{
-              event: EventBadge,
-            }}
-            eventPropGetter={() => ({
-              style: {
-                backgroundColor: "transparent", // ✅ removes blue rectangle
-                border: "none",
-                padding: 0,
-              },
-            })}
-            popup
-          />
+  localizer={localizer}
+  events={events}
+  startAccessor="start"
+  endAccessor="end"
+  style={{ flex: 1 }}
+  views={['month', 'week', 'day']}
+  selectable
+  onSelectSlot={slotInfo => {
+    setForm({
+      ...form,
+      dueDate: slotInfo.start.toISOString().split('T')[0],
+      recurring: 'none',
+      paid: false,
+    });
+    setEditPayment(null);
+    setModalOpen(true);
+  }}
+  onSelectEvent={event =>
+    handleEdit(payments.find(p => p.id === event.id))
+  }
+  components={{
+    // Custom date cell for month view
+    month: {
+      dateCellWrapper: ({ children, value }) => {
+        const dayEvents = events.filter(
+          ev =>
+            new Date(ev.start).toDateString() === value.toDateString()
+        );
+
+        return (
+          <div className="relative w-full h-full">
+            {children}
+            {dayEvents.length > 0 && (
+              <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-2">
+                {dayEvents.map(ev => {
+                  const color = ev.paid
+                    ? "bg-green-500"
+                    : ev.remaining < 3
+                    ? "bg-red-500"
+                    : ev.remaining < 7
+                    ? "bg-yellow-400"
+                    : "bg-blue-500";
+
+                  return (
+                    <div
+                      key={ev.id}
+                      className={`w-4 h-4 rounded-full ${color}`}
+                      title={`${ev.title} - ₹${ev.amount} • ${ev.paid ? "Paid" : "Pending"} • Due in ${ev.remaining} days`}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      },
+    },
+  }}
+  eventPropGetter={() => ({
+    style: {
+      display: "none", // completely hide default event box
+    },
+  })}
+  popup
+/>
+
         </div>
       </div>
 
