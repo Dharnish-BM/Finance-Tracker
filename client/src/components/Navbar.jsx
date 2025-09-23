@@ -38,6 +38,7 @@ function Navbar({ user, setUser }) {
             <Link to="/transactions" className="text-white/90 hover:text-white transition font-medium">Transactions</Link>
             <Link to="/budgets" className="text-white/90 hover:text-white transition font-medium">Budgets</Link>
             <Link to="/myspace" className="text-white/90 hover:text-white transition font-medium">MySpace</Link>
+            <Link to="/locator" className="text-white/90 hover:text-white transition font-medium">Locator</Link>
           </div>
         )}
 
@@ -95,6 +96,7 @@ function Navbar({ user, setUser }) {
           <Link to="/transactions" onClick={() => setMobileOpen(false)} className="px-6 py-3 hover:bg-[#7209b7] transition text-white font-medium text-left w-full">Transactions</Link>
           <Link to="/budgets" onClick={() => setMobileOpen(false)} className="px-6 py-3 hover:bg-[#7209b7] transition text-white font-medium text-left w-full">Budgets</Link>
           <Link to="/myspace" onClick={() => setMobileOpen(false)} className="px-6 py-3 hover:bg-[#7209b7] transition text-white font-medium text-left w-full">MySpace</Link>
+          <Link to="/locator" onClick={() => setMobileOpen(false)} className="px-6 py-3 hover:bg-[#7209b7] transition text-white font-medium text-left w-full">Locator</Link>
 
           {/* Calendar Button (Mobile) */}
           <Link to="/calendar" onClick={() => setMobileOpen(false)} className="px-6 py-3 hover:bg-[#7209b7] transition text-white font-medium text-left w-full flex items-center">

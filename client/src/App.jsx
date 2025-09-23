@@ -13,6 +13,7 @@ import Register from "./pages/Register";
 import TestAuth from "./pages/TestAuth";
 import TransactionManagement from "./pages/TransactionManagement";
 import MySpace from "./pages/MySpace"; // <-- import MySpace
+import Locator from "./pages/Locator";
 
 function AppWrapper() {
   return (
@@ -59,6 +60,7 @@ function App() {
         <Route path="/transactions" element={user ? <TransactionManagement /> : <Navigate to="/login" />} />
         <Route path="/budgets" element={user ? <BudgetManagement /> : <Navigate to="/login" />} />
         <Route path="/myspace" element={user ? <MySpace /> : <Navigate to="/login" />} /> {/* <-- add MySpace */}
+        <Route path="/locator" element={user ? <Locator /> : <Navigate to="/login" />} />
       </Routes>
 
       {!hideNavbar && <Chatbot />}
