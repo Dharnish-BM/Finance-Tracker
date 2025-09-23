@@ -9,7 +9,8 @@ tailwindcss
 @tailwindcss/vite
 gapi-script
 react-toastify
-react-calendar
+react-big-calendar
+date-fns
 
 backend(node) npm install
 express
