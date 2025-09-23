@@ -158,8 +158,10 @@ You are analyzing a bank statement. Here is the statement text:
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 
+
+
 # ================================
-# New route: week-summariser
+# New route: month-summariser
 # ================================
 @app.post("/week-summariser")
 async def week_summariser():
@@ -173,22 +175,24 @@ async def week_summariser():
     if not statement_text:
         return JSONResponse({"error": f"{txt_path} is empty"}, status_code=400)
 
-    # Generate Gemini prompt for weekly summary
+    # Updated Gemini prompt for weekly summary
     prompt = f"""
 You are a finance assistant. The following is the bank statement text:
 {statement_text}
 
-- Provide a concise weekly summary of current week: total credits, debits, expenses.
-- Compare it with last week.
-- Give 3-4 short insights in 1-2 lines each.
-- Output plain text without markdown.
+- Analyze the statement only for the current week.
+-give consise and short reply
+- Return exactly 3 short insights (no more, no less).
+- Each insight must be structured and numbered like:
+  1) ...
+  2) ...
+  3) ...
+- Do not include extra text, headers, or markdown.
 """
     response = model.generate_content(prompt)
     return {"week_summary": clean_reply(response.text)}
 
-# ================================
-# New route: month-summariser
-# ================================
+
 @app.post("/month-summariser")
 async def month_summariser():
     txt_path = "extracted_text.txt"
@@ -201,15 +205,19 @@ async def month_summariser():
     if not statement_text:
         return JSONResponse({"error": f"{txt_path} is empty"}, status_code=400)
 
+    # Updated Gemini prompt for monthly summary
     prompt = f"""
 You are a finance assistant. The following is the bank statement text:
 {statement_text}
 
-- Provide a concise monthly summary of current month: total credits, debits, expenses.
-- Highlight any significant transactions or patterns.
-- Compare it with last month.
-- Give 3-4 short insights in 1-2 lines each.
-- Output plain text without markdown.
+- Analyze the statement only for the current month.
+-give consise and short reply
+- Return exactly 3 short insights (no more, no less).
+- Each insight must be structured and numbered like:
+  1) ...
+  2) ...
+  3) ...
+- Do not include extra text, headers, or markdown.
 """
     response = model.generate_content(prompt)
     return {"month_summary": clean_reply(response.text)}
