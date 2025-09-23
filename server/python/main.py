@@ -6,6 +6,7 @@ import uvicorn
 import subprocess
 import os
 import re
+from datetime import datetime, timedelta
 
 # ================================
 # Configure Gemini API
@@ -46,6 +47,7 @@ def clean_reply(text: str) -> str:
 @app.get("/")
 def root():
     return {"status": "ok", "message": "Chatbot backend running with Gemini (Financial Agent & Statement QA)!"}
+
 
 @app.post("/chat")
 async def chat(request: Request):
@@ -92,9 +94,6 @@ Respond in plain text, no greetings, no Markdown symbols, and keep answers brief
 
 @app.post("/upload-statement")
 async def upload_statement(file: UploadFile = File(...)):
-    """
-    Upload a bank statement PDF and process it with statementocr.py.
-    """
     try:
         file_bytes = await file.read()
 
@@ -120,15 +119,8 @@ async def upload_statement(file: UploadFile = File(...)):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
-# ================================
-# New route: chat-statement
-# ================================
 @app.post("/chat-statement")
 async def chat_statement(request: Request):
-    """
-    Read extracted_text.txt and answer a user question using Gemini.
-    JSON payload: {"question": "Your question here"}
-    """
     try:
         data = await request.json()
         question = data.get("question", "").strip()
@@ -139,17 +131,14 @@ async def chat_statement(request: Request):
         if not os.path.exists(txt_path):
             return JSONResponse({"error": f"{txt_path} not found. Upload a statement first."}, status_code=400)
 
-        # Read statement text
         with open(txt_path, "r", encoding="utf-8") as f:
             statement_text = f.read().strip()
 
         if not statement_text:
             return JSONResponse({"error": f"{txt_path} is empty"}, status_code=400)
 
-        # Start Gemini chat session
         chat_session = model.start_chat(history=[])
 
-        # Send system context
         system_prompt = f"""
 You are analyzing a bank statement. Here is the statement text:
 
@@ -161,8 +150,6 @@ You are analyzing a bank statement. Here is the statement text:
 - Be concise and accurate.
 """
         chat_session.send_message(system_prompt)
-
-        # Get answer
         response = chat_session.send_message(question)
         answer = clean_reply(response.text)
 
@@ -174,7 +161,71 @@ You are analyzing a bank statement. Here is the statement text:
 
 
 # ================================
+# New route: month-summariser
+# ================================
+@app.post("/week-summariser")
+async def week_summariser():
+    txt_path = "extracted_text.txt"
+    if not os.path.exists(txt_path):
+        return JSONResponse({"error": f"{txt_path} not found. Upload a statement first."}, status_code=400)
+
+    with open(txt_path, "r", encoding="utf-8") as f:
+        statement_text = f.read().strip()
+
+    if not statement_text:
+        return JSONResponse({"error": f"{txt_path} is empty"}, status_code=400)
+
+    # Updated Gemini prompt for weekly summary
+    prompt = f"""
+You are a finance assistant. The following is the bank statement text:
+{statement_text}
+
+- Analyze the statement only for the current week.
+-give consise and short reply
+- Return exactly 3 short insights (no more, no less).
+- Each insight must be structured and numbered like:
+  1) ...
+  2) ...
+  3) ...
+- Do not include extra text, headers, or markdown.
+"""
+    response = model.generate_content(prompt)
+    return {"week_summary": clean_reply(response.text)}
+
+
+@app.post("/month-summariser")
+async def month_summariser():
+    txt_path = "extracted_text.txt"
+    if not os.path.exists(txt_path):
+        return JSONResponse({"error": f"{txt_path} not found. Upload a statement first."}, status_code=400)
+
+    with open(txt_path, "r", encoding="utf-8") as f:
+        statement_text = f.read().strip()
+
+    if not statement_text:
+        return JSONResponse({"error": f"{txt_path} is empty"}, status_code=400)
+
+    # Updated Gemini prompt for monthly summary
+    prompt = f"""
+You are a finance assistant. The following is the bank statement text:
+{statement_text}
+
+- Analyze the statement only for the current month.
+-give consise and short reply
+- Return exactly 3 short insights (no more, no less).
+- Each insight must be structured and numbered like:
+  1) ...
+  2) ...
+  3) ...
+- Do not include extra text, headers, or markdown.
+"""
+    response = model.generate_content(prompt)
+    return {"month_summary": clean_reply(response.text)}
+
+
+
+# ================================
 # Run server
 # ================================
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000)

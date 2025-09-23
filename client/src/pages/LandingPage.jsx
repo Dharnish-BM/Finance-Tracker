@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import FinancialNewsCarouselLanding from "../components/FinancialNewsCarouselLanding";
 import ExchangeRateChart from "../components/ExchangeRateChart";
+import Quotes from "../components/quotes";
 
 function LandingPage() {
   const [message, setMessage] = useState("");
@@ -44,14 +45,27 @@ function LandingPage() {
         </motion.div>
       </div>
 
-      {/* USD → INR Exchange Rate Chart */}
-      <div className="px-4 pb-12 max-w-7xl mx-auto">
+      {/* Charts + Quotes Row */}
+      <div className="px-4 pb-12 max-w-7xl mx-auto flex flex-col md:flex-row gap-6">
+        {/* USD → INR Exchange Rate Chart */}
         <motion.div
+          className="flex-1 min-w-[300px]"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.7 }}
         >
           <ExchangeRateChart />
+        </motion.div>
+
+
+        {/* Quotes Component */}
+        <motion.div
+          className="flex-1 min-w-[300px]"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.0, duration: 0.7 }}
+        >
+          <Quotes />
         </motion.div>
       </div>
     </div>

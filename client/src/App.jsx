@@ -12,6 +12,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import TestAuth from "./pages/TestAuth";
 import TransactionManagement from "./pages/TransactionManagement";
+import MySpace from "./pages/MySpace"; // <-- import MySpace
 
 function AppWrapper() {
   return (
@@ -33,7 +34,6 @@ function App() {
     const token = localStorage.getItem("token");
     if (token) {
       setUser(token);
-      // Load user data when user is authenticated
       loadUserData();
     }
     setLoading(false);
@@ -58,6 +58,7 @@ function App() {
         <Route path="/" element={user ? <LandingPage /> : <Navigate to="/login" />} />
         <Route path="/transactions" element={user ? <TransactionManagement /> : <Navigate to="/login" />} />
         <Route path="/budgets" element={user ? <BudgetManagement /> : <Navigate to="/login" />} />
+        <Route path="/myspace" element={user ? <MySpace /> : <Navigate to="/login" />} /> {/* <-- add MySpace */}
       </Routes>
 
       {!hideNavbar && <Chatbot />}
