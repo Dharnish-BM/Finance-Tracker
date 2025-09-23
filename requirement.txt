@@ -13,6 +13,7 @@ react-toastify
 react-big-calendar
 date-fns
 react-tooltip
+react-icons
 
 backend(node) npm install
 express

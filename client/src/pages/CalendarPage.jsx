@@ -4,6 +4,16 @@ import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { Calendar as BigCalendar, dateFnsLocalizer } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import {
+  FiCalendar,
+  FiCheckCircle,
+  FiDollarSign,
+  FiEdit,
+  FiRefreshCcw,
+  FiTag,
+  FiTrash2,
+  FiX,
+} from "react-icons/fi";
 
 // Helper functions
 const daysRemaining = (dueDate) => {
@@ -198,10 +208,7 @@ function CalendarPage() {
                     paymentsByDate[date.toDateString()] || [];
                   return (
                     <div className="relative h-full flex flex-col items-center">
-                      {/* Day number at the top */}
                       <div className="text-sm font-medium">{label}</div>
-
-                      {/* Payments at the bottom */}
                       {dayPayments.length > 0 && (
                         <div className="mt-auto w-full flex flex-col gap-1 px-1 pb-1">
                           {dayPayments.map((p) => (
@@ -295,22 +302,22 @@ function CalendarPage() {
                   {!p.paid && (
                     <button
                       onClick={() => markAsPaid(p)}
-                      className="text-green-500 hover:underline"
+                      className="text-green-500 hover:underline flex items-center gap-1"
                     >
-                      Mark Paid
+                      <FiCheckCircle /> Paid
                     </button>
                   )}
                   <button
                     onClick={() => handleEdit(p)}
-                    className="text-blue-500 hover:underline"
+                    className="text-blue-500 hover:underline flex items-center gap-1"
                   >
-                    Edit
+                    <FiEdit /> Edit
                   </button>
                   <button
                     onClick={() => handleDelete(p.id)}
-                    className="text-red-500 hover:underline"
+                    className="text-red-500 hover:underline flex items-center gap-1"
                   >
-                    Delete
+                    <FiTrash2 /> Delete
                   </button>
                 </div>
               </li>
@@ -336,64 +343,103 @@ function CalendarPage() {
 
       {/* Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            className="bg-white rounded-3xl shadow-2xl w-96 flex flex-col gap-4 p-6"
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="bg-white rounded-3xl shadow-2xl w-[95%] max-w-lg flex flex-col gap-6 p-8 relative"
           >
-            <h3 className="font-bold text-xl text-center">
-              {editPayment ? "Edit Payment" : "Add Payment"}
-            </h3>
-            <input
-              type="text"
-              name="name"
-              placeholder="Bill Name"
-              value={form.name}
-              onChange={handleChange}
-              className="border px-4 py-2 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-            <input
-              type="number"
-              name="amount"
-              placeholder="Amount"
-              value={form.amount}
-              onChange={handleChange}
-              className="border px-4 py-2 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-            <input
-              type="date"
-              name="dueDate"
-              value={form.dueDate}
-              onChange={handleChange}
-              className="border px-4 py-2 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-            <select
-              name="recurring"
-              value={form.recurring}
-              onChange={handleChange}
-              className="border px-4 py-2 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
+            {/* Close Button */}
+            <button
+              onClick={() => {
+                setModalOpen(false);
+                setEditPayment(null);
+              }}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
             >
-              <option value="none">None</option>
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-              <option value="yearly">Yearly</option>
-            </select>
-            <div className="flex justify-end gap-3 mt-2">
+              <FiX size={20} />
+            </button>
+
+            {/* Title */}
+            <h3 className="font-extrabold text-2xl text-center text-gray-800">
+              {editPayment ? "Edit Payment" : "Add New Payment"}
+            </h3>
+            <p className="text-sm text-gray-500 text-center -mt-3">
+              {editPayment
+                ? "Update your existing payment details."
+                : "Fill in the details to schedule a new payment."}
+            </p>
+
+            {/* Form Fields */}
+            <div className="flex flex-col gap-4">
+              <div className="relative">
+                <FiTag className="absolute left-3 top-3 text-gray-400" />
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Bill Name"
+                  value={form.name}
+                  onChange={handleChange}
+                  className="border pl-10 pr-4 py-3 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 placeholder-gray-400 transition"
+                />
+              </div>
+
+              <div className="relative">
+                <FiDollarSign className="absolute left-3 top-3 text-gray-400" />
+                <input
+                  type="number"
+                  name="amount"
+                  placeholder="Amount"
+                  value={form.amount}
+                  onChange={handleChange}
+                  className="border pl-10 pr-4 py-3 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 placeholder-gray-400 transition"
+                />
+              </div>
+
+              <div className="relative">
+                <FiCalendar className="absolute left-3 top-3 text-gray-400" />
+                <input
+                  type="date"
+                  name="dueDate"
+                  value={form.dueDate}
+                  onChange={handleChange}
+                  className="border pl-10 pr-4 py-3 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 transition"
+                />
+              </div>
+
+              <div className="relative">
+                <FiRefreshCcw className="absolute left-3 top-3 text-gray-400" />
+                <select
+                  name="recurring"
+                  value={form.recurring}
+                  onChange={handleChange}
+                  className="border pl-10 pr-4 py-3 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 transition"
+                >
+                  <option value="none">No Recurrence</option>
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="yearly">Yearly</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-3 mt-4">
               <button
                 onClick={() => {
                   setModalOpen(false);
                   setEditPayment(null);
                 }}
-                className="px-5 py-2 rounded-xl border hover:bg-gray-100"
+                className="px-5 py-2 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-100 transition"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmit}
-                className="px-5 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600"
+                className="px-6 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-md transition"
               >
                 Save
               </button>
