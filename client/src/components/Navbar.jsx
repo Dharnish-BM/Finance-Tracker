@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Bell } from "lucide-react"; // 👈 clean notification icon
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import TranslateToggle from "./TranslateToggle";
@@ -6,6 +7,7 @@ import TranslateToggle from "./TranslateToggle";
 function Navbar({ user, setUser }) {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [notifications, setNotifications] = useState(3); // 👈 demo badge count
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -42,17 +44,31 @@ function Navbar({ user, setUser }) {
           </div>
         )}
 
-        {/* Translate + Calendar + Logout */}
+        {/* Right Side (Translate + Calendar + Notifications + Logout) */}
         {user && (
-          <div className="flex items-center">
+          <div className="flex items-center space-x-3">
             <TranslateToggle />
+
+            {/* Notifications Button */}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="relative p-2 rounded-full bg-white/10 hover:bg-white/20 transition shadow-md"
+            >
+              <Bell className="h-6 w-6 text-white" />
+              {notifications > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-xs font-bold px-1.5 py-0.5 rounded-full">
+                  {notifications}
+                </span>
+              )}
+            </motion.button>
 
             {/* Calendar Button */}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate("/calendar")}
-              className="ml-3 px-4 py-2 rounded-lg bg-[#ffb703] hover:bg-[#faa307] transition text-white font-semibold shadow-md flex items-center"
+              className="px-4 py-2 rounded-lg bg-[#ffb703] hover:bg-[#faa307] transition text-white font-semibold shadow-md flex items-center"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M6 2a1 1 0 011 1v1h6V3a1 1 0 112 0v1h1a2 2 0 012 2v11a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h1V3a1 1 0 011-1zM5 7v9h10V7H5z" clipRule="evenodd" />
@@ -60,11 +76,12 @@ function Navbar({ user, setUser }) {
               Calendar
             </motion.button>
 
+            {/* Logout */}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleLogout}
-              className="ml-3 px-5 py-2 rounded-lg bg-[#c1121f] hover:bg-[#9d0d19] transition text-white font-semibold shadow-md"
+              className="px-5 py-2 rounded-lg bg-[#c1121f] hover:bg-[#9d0d19] transition text-white font-semibold shadow-md"
             >
               Logout
             </motion.button>
@@ -97,6 +114,20 @@ function Navbar({ user, setUser }) {
           <Link to="/budgets" onClick={() => setMobileOpen(false)} className="px-6 py-3 hover:bg-[#7209b7] transition text-white font-medium text-left w-full">Budgets</Link>
           <Link to="/myspace" onClick={() => setMobileOpen(false)} className="px-6 py-3 hover:bg-[#7209b7] transition text-white font-medium text-left w-full">MySpace</Link>
           <Link to="/locator" onClick={() => setMobileOpen(false)} className="px-6 py-3 hover:bg-[#7209b7] transition text-white font-medium text-left w-full">Locator</Link>
+
+          {/* Notifications (Mobile) */}
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="flex items-center px-6 py-3 hover:bg-[#7209b7] transition text-white font-medium text-left w-full relative"
+          >
+            <Bell className="h-5 w-5 mr-2" />
+            Notifications
+            {notifications > 0 && (
+              <span className="absolute right-6 top-2 bg-red-500 text-xs font-bold px-1.5 py-0.5 rounded-full">
+                {notifications}
+              </span>
+            )}
+          </button>
 
           {/* Calendar Button (Mobile) */}
           <Link to="/calendar" onClick={() => setMobileOpen(false)} className="px-6 py-3 hover:bg-[#7209b7] transition text-white font-medium text-left w-full flex items-center">
