@@ -5,44 +5,44 @@ import { useNavigate } from "react-router-dom";
 function HomePage() {
   const navigate = useNavigate();
 
-  // 👇 Team Data (edit here)
+  // 👇 Team Data
   const team = [
     {
-      name: "John Doe",
-      dept: "Computer Science",
-      img: "https://via.placeholder.com/200x300", // standing rectangle
+      name: "Prabhakaran SB",
+      dept: "Artificial Intelligence & Data Science",
+      img: "/bm.jpg",
       github: "https://github.com/username",
       linkedin: "https://linkedin.com/in/username",
       leetcode: "https://leetcode.com/username",
     },
     {
-      name: "Jane Smith",
+      name: "Dharnish BM",
       dept: "Information Technology",
-      img: "https://via.placeholder.com/200x300",
+      img: "/bm.jpg",
+      github: "https://github.com/Dharnish-BM",
+      linkedin: "https://linkedin.com/in/username",
+      leetcode: "https://leetcode.com/username",
+    },
+    {
+      name: "Dhurgashree I",
+      dept: "Information Technology",
+      img: "/ds.jpg",
       github: "https://github.com/username",
       linkedin: "https://linkedin.com/in/username",
       leetcode: "https://leetcode.com/username",
     },
     {
-      name: "Alice Brown",
-      dept: "Electronics",
-      img: "https://via.placeholder.com/200x300",
+      name: "Arun S",
+      dept: "Information Technology",
+      img: "/ar.jpg",
       github: "https://github.com/username",
       linkedin: "https://linkedin.com/in/username",
       leetcode: "https://leetcode.com/username",
     },
     {
-      name: "Bob Lee",
-      dept: "Mechanical",
-      img: "https://via.placeholder.com/200x300",
-      github: "https://github.com/username",
-      linkedin: "https://linkedin.com/in/username",
-      leetcode: "https://leetcode.com/username",
-    },
-    {
-      name: "Sara Khan",
-      dept: "Electrical",
-      img: "https://via.placeholder.com/200x300",
+      name: "Divya R",
+      dept: "Information Technology",
+      img: "/dr.jpg",
       github: "https://github.com/username",
       linkedin: "https://linkedin.com/in/username",
       leetcode: "https://leetcode.com/username",
@@ -72,9 +72,9 @@ function HomePage() {
             transition={{ delay: 0.15, duration: 0.6 }}
             className="mt-6 text-lg md:text-xl text-[#2b2d42]/80 leading-relaxed"
           >
-            Zenith is where innovation meets ambition. We’re building smarter
-            solutions, pushing boundaries, and reaching new heights 🚀. Join us
-            on this journey to the top.
+            Your personal <span className="font-semibold text-[#7209b7]">finance tracker </span> 
+            designed to help you stay on top of your expenses, savings, and investments.  
+            With Zenith, managing money becomes simple, smart, and stress-free 💰.
           </motion.p>
 
           <motion.div
@@ -85,13 +85,13 @@ function HomePage() {
           >
             <button
               onClick={() => navigate("/login")}
-              className="px-10 py-4 rounded-xl text-white font-semibold shadow-lg text-lg bg-gradient-to-r from-[#7209b7] to-[#9d4edd] hover:shadow-xl transition"
+              className="px-10 py-4 rounded-xl text-white font-semibold shadow-lg text-lg bg-gradient-to-r from-[#7209b7] to-[#9d4edd] hover:scale-105 hover:shadow-xl transition"
             >
-              Go to Login
+              Get Started
             </button>
             <a
               href="#team"
-              className="px-10 py-4 rounded-xl text-[#2b2d42] font-semibold shadow-lg text-lg bg-white/60 hover:bg-white/80 backdrop-blur-md transition"
+              className="px-10 py-4 rounded-xl text-[#2b2d42] font-semibold shadow-lg text-lg bg-white/70 hover:bg-white hover:scale-105 transition backdrop-blur-md"
             >
               Meet the Team
             </a>
@@ -100,14 +100,14 @@ function HomePage() {
       </section>
 
       {/* ================= Team Section ================= */}
-      <section id="team" className="w-full py-24 bg-white/30 backdrop-blur-md">
+      <section id="team" className="w-full py-24 bg-white/40 backdrop-blur-md">
         <div className="max-w-7xl mx-auto text-center mb-16 px-6">
           <h2 className="text-4xl font-extrabold text-[#2b2d42]">
-            Meet the Zenith Crew 🌟
+            Meet the Team 🚀
           </h2>
-          <p className="mt-4 text-[#2b2d42]/80 text-lg">
-            A group of innovators, dreamers, and problem solvers. Together, we
-            strive to make Zenith a symbol of limitless possibilities.
+          <p className="mt-4 text-[#2b2d42]/80 text-lg max-w-2xl mx-auto">
+            We’re the builders behind Zenith – passionate problem solvers 
+            dedicated to making financial tracking seamless and empowering.
           </p>
         </div>
 
@@ -119,24 +119,24 @@ function HomePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: idx * 0.1 }}
-              className="rounded-2xl shadow-xl hover:shadow-2xl transition-transform transform hover:-translate-y-2 bg-white/60 backdrop-blur-md p-6 flex flex-col items-center text-center border border-white/50"
+              className="rounded-2xl shadow-xl hover:shadow-2xl transition-transform transform hover:-translate-y-3 bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-xl p-6 flex flex-col items-center text-center border border-white/60 hover:border-[#9d4edd]/40"
             >
               <img
                 src={member.img}
                 alt={member.name}
-                className="w-full h-64 object-cover rounded-xl shadow-md mb-5 border-4 border-white/70"
+                className="w-40 h-40 object-cover rounded-full shadow-lg mb-5 border-4 border-white"
               />
               <h3 className="text-lg font-bold text-gray-800">
                 {member.name}
               </h3>
               <p className="text-sm text-gray-600">{member.dept}</p>
 
-              <div className="flex gap-5 mt-4">
+              <div className="flex gap-4 mt-4">
                 <a
                   href={member.github}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 rounded-full bg-white/70 hover:bg-white transition"
+                  className="p-2 rounded-full bg-white shadow hover:bg-[#f1f1f1] transition"
                 >
                   <Github className="w-5 h-5 text-gray-700" />
                 </a>
@@ -144,7 +144,7 @@ function HomePage() {
                   href={member.linkedin}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 rounded-full bg-white/70 hover:bg-white transition"
+                  className="p-2 rounded-full bg-white shadow hover:bg-[#f1f1f1] transition"
                 >
                   <Linkedin className="w-5 h-5 text-blue-600" />
                 </a>
@@ -152,7 +152,7 @@ function HomePage() {
                   href={member.leetcode}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 rounded-full bg-white/70 hover:bg-white transition"
+                  className="p-2 rounded-full bg-white shadow hover:bg-[#f1f1f1] transition"
                 >
                   <Code2 className="w-5 h-5 text-amber-500" />
                 </a>
