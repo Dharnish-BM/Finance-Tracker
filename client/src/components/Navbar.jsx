@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Bell } from "lucide-react"; // 👈 clean notification icon
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Notifications from "./Notifications";
 import TranslateToggle from "./TranslateToggle";
 
 function Navbar({ user, setUser }) {
@@ -49,19 +50,8 @@ function Navbar({ user, setUser }) {
           <div className="flex items-center space-x-3">
             <TranslateToggle />
 
-            {/* Notifications Button */}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className="relative p-2 rounded-full bg-white/10 hover:bg-white/20 transition shadow-md"
-            >
-              <Bell className="h-6 w-6 text-white" />
-              {notifications > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-xs font-bold px-1.5 py-0.5 rounded-full">
-                  {notifications}
-                </span>
-              )}
-            </motion.button>
+            <Notifications />
+
 
             {/* Calendar Button */}
             <motion.button
